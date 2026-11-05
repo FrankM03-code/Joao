@@ -64,13 +64,13 @@ export default class JoaoPreferences extends ExtensionPreferences {
         const styles = ['bubble', 'island'];
         const style = new Adw.ComboRow({
             title: 'Dónde avisan',
-            subtitle: 'La isla sale siempre que la burbuja no esté a la vista',
+            subtitle: 'En el botón del lanzador sale aunque la franja esté oculta; nunca arriba',
             model: Gtk.StringList.new(['En la burbuja de la franja', 'En la isla']),
             selected: Math.max(0, styles.indexOf(settings.get_string('notify-style'))),
         });
         style.connect('notify::selected', () => settings.set_string('notify-style', styles[style.selected]));
         bubble.add(style);
-        bubble.add(this._switchRow(settings, 'bubble-notifications', 'Animar la burbuja', 'Si no, avisa la isla'));
+        bubble.add(this._switchRow(settings, 'bubble-notifications', 'Animar la burbuja', 'Si no, los avisos solo quedan en la lista'));
         bubble.add(this._switchRow(settings, 'bubble-notify-list', 'Lista al pasar el ratón por la burbuja', ''));
         bubble.add(this._switchRow(settings, 'notify-hide-message-text', 'Ocultar el texto de los mensajes en la línea',
             'Solo dice quién escribe y «nuevo mensaje»'));

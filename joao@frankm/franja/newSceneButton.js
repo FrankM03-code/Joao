@@ -32,6 +32,7 @@ class NewSceneButton extends St.Button {
         this._delegate = this;
 
         const layer = new St.Widget({layout_manager: new Clutter.BinLayout(), x_expand: true, y_expand: true});
+        this._layer = layer;
         this.set_child(layer);
         this._area = new St.DrawingArea({x_expand: true, y_expand: true});
         this._area.connect('repaint', () => this._paintBorder());
@@ -45,6 +46,7 @@ class NewSceneButton extends St.Button {
         content.add_child(this._icon);
         content.add_child(this._label);
         layer.add_child(content);
+        this._content = content;
 
         this._themeContext = St.ThemeContext.get_for_stage(global.stage);
         this._accentId = this._themeContext.connect('notify::accent-color', () => this._updateDropStyle());
@@ -92,6 +94,20 @@ class NewSceneButton extends St.Button {
     }
 
     // Something that can become a scene is over the button (or not).
+    // Something else shown inside the box, in place of its text (the strip's volume).
+    addOverlay(actor) {
+        this._layer.add_child(actor);
+    }
+
+    setContentHidden(hidden) {
+        const opacity = hidden ? 0 : 255;
+        this._content.remove_transition('opacity');
+        if (this._content.has_allocation())
+            this._content.ease({opacity, duration: 120, mode: Clutter.AnimationMode.EASE_OUT_QUAD});
+        else
+            this._content.opacity = opacity;
+    }
+
     setDrop(on) {
         if (on === this._dropping)
             return;

@@ -7,6 +7,7 @@
 // microphone, the camera or the screen while one of them is in use. Notifications arrive here too
 // (bubbleNotify.js, notifyList.js).
 import Clutter from 'gi://Clutter';
+import GLib from 'gi://GLib';
 import Graphene from 'gi://Graphene';
 import St from 'gi://St';
 
@@ -28,6 +29,8 @@ const CENTER = new Graphene.Point({x: 0.5, y: 0.5});
 export const BUBBLE_ROOM = 38;
 // What the strip's padding grows at the bottom (stylesheet: .con-burbuja, 42 instead of 10).
 export const BUBBLE_INSET = 32;
+const PEEK_FADE = 200;
+const PEEK_CHECK = 400;     // ms between looks at the pointer before leaving
 
 function circle(styleClass, params = {}) {
     return new St.Widget({
@@ -98,6 +101,8 @@ export class AppsBubble {
             else
                 this._easeScale(420, Clutter.AnimationMode.EASE_OUT_BACK);
         });
+        this._button.connect('scroll-event', (a, event) =>
+            this._drawer ? Clutter.EVENT_PROPAGATE : this._strip.wheelVolume(event));
         this._button.connect('key-focus-in', () => this._focusRing.show());
         this._button.connect('key-focus-out', () => this._focusRing.hide());
 
@@ -117,6 +122,7 @@ export class AppsBubble {
     }
 
     destroy() {
+        this._stopPeek(false);
         this._stripIds.forEach(id => this._strip.actor.disconnect(id));
         this._settingIds.forEach(id => this._settings.disconnect(id));
         this._privacy.disconnect(this._privacyId);
@@ -165,10 +171,16 @@ export class AppsBubble {
             return;
         }
         const strip = this._strip.actor;
-        this.actor.visible = this.enabled && strip.visible;
-        this.actor.opacity = strip.opacity;
-        this.actor.set_position(Math.round(strip.x + strip.translation_x + strip.width / 2 - half),
-            Math.round(strip.y + strip.height - half));
+        const center = this._peeking ? this.center() : null;
+        if (center) {
+            // Telling something while the strip is away: alone, at its resting place.
+            this.actor.set_position(center.x - half, center.y - half);
+        } else {
+            this.actor.visible = this.enabled && strip.visible;
+            this.actor.opacity = strip.opacity;
+            this.actor.set_position(Math.round(strip.x + strip.translation_x + strip.width / 2 - half),
+                Math.round(strip.y + strip.height - half));
+        }
         // Out of sight it cannot warn of anything: the corner's dots do it then.
         privacyCorner()?.setBubble(this.actor.visible && this.actor.opacity > 0 ? this.actor : null);
         if (this.onScreen)
@@ -197,11 +209,70 @@ export class AppsBubble {
 
     // In sight and free to say something now. Not while sliding away or under the page.
     get onScreen() {
-        return this.enabled && !this._drawer && this.actor.visible && !this._strip.isAway;
+        return this.enabled && !this._drawer && this.actor.visible && (!this._strip.isAway || this._peeking);
+    }
+
+    // It can come out for a notification even with the strip away (a window over it, fullscreen,
+    // the overview). Not on the lock screen or the login screen.
+    get canTell() {
+        return !this._drawer && !Main.sessionMode.isLocked && !Main.sessionMode.isGreeter;
     }
 
     arrive(notification, total) {
-        this._notify.arrive(notification, total);
+        if (!this.onScreen)
+            this._startPeek();
+        this._cancelPeekEnd();
+        this._later(() => this._notify?.arrive(notification, total));
+    }
+
+    _startPeek() {
+        this.actor.remove_transition('opacity');
+        const hidden = !this.actor.visible;
+        if (hidden)
+            this.actor.opacity = 0;
+        if (!this._peeking) {
+            this._peeking = true;
+            // A fullscreen window on X11 skips the shell's painting unless told not to.
+            global.compositor.disable_unredirect();
+        }
+        this.actor.show();
+        this.sync();
+        this._later(() => this._peeking && this.actor.ease({opacity: 255, duration: PEEK_FADE, mode: Clutter.AnimationMode.EASE_OUT_QUAD}));
+    }
+
+    // The bubble has gone back to calm: away with the strip, once the pointer is not on it.
+    wentQuiet() {
+        if (!this._peeking || this._peekEndId)
+            return;
+        this._peekEndId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, PEEK_CHECK, () => {
+            if (this._button.hover || this.notifyList.hover || privacyCorner()?.listHover)
+                return GLib.SOURCE_CONTINUE;
+            this._peekEndId = 0;
+            this._stopPeek(true);
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
+    _cancelPeekEnd() {
+        if (this._peekEndId)
+            GLib.source_remove(this._peekEndId);
+        this._peekEndId = 0;
+    }
+
+    _stopPeek(animate) {
+        this._cancelPeekEnd();
+        if (!this._peeking)
+            return;
+        this._peeking = false;
+        global.compositor.enable_unredirect();
+        const stripHere = this._strip.actor.visible && !this._strip.isAway;
+        if (!animate || stripHere || !this.actor.has_allocation()) {
+            this.actor.remove_transition('opacity');
+            this.sync();
+            return;
+        }
+        this.actor.ease({opacity: 0, duration: PEEK_FADE, mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            onStopped: finished => finished && this.sync()});
     }
 
     easeToRest(duration, mode) {
@@ -212,6 +283,7 @@ export class AppsBubble {
         if (!this.showsNotifications) {
             this._notify.settle();
             this.notifyList.close(false);
+            this._stopPeek(false);
         }
         this._notify.syncCount();
     }
@@ -271,6 +343,7 @@ export class AppsBubble {
     // ---------- called by the page ----------
 
     enterDrawer(drawer) {
+        this._stopPeek(false);
         this._notify.settle();
         this.notifyList.close(false);
         if (this._drawer !== drawer) {

@@ -12,6 +12,47 @@ import {gnome, Signals, whenReady} from './gnome.js';
 
 const WHEEL_STEP = 0.05;
 
+// The wheel over a slider moves it.
+export function wheelSlider(slider, event) {
+    if (event.get_flags() & Clutter.EventFlags.FLAG_POINTER_EMULATED)
+        return Clutter.EVENT_PROPAGATE;
+    let delta = 0;
+    const direction = event.get_scroll_direction();
+    if (direction === Clutter.ScrollDirection.UP)
+        delta = WHEEL_STEP;
+    else if (direction === Clutter.ScrollDirection.DOWN)
+        delta = -WHEEL_STEP;
+    else if (direction === Clutter.ScrollDirection.SMOOTH)
+        delta = -event.get_scroll_delta()[1] * WHEEL_STEP;
+    slider.value = Math.max(0, Math.min(slider.value + delta, slider.maximum_value));
+    return Clutter.EVENT_STOP;
+}
+
+// Two-way link between our {row, icon, slider} and GNOME's (its own handler applies the change).
+export function mirrorSlider(signals, ours, theirs) {
+    if (!theirs) {
+        ours.row.visible = false;
+        return;
+    }
+    const s = signals;
+    const flags = GObject.BindingFlags.SYNC_CREATE;
+    s.bind(theirs, 'visible', ours.row, 'visible', flags);
+    s.bind(theirs, 'icon-name', ours.icon, 'icon-name', flags);
+    s.bind(theirs.slider, 'maximum-value', ours.slider, 'maximum-value', flags);
+    s.bind(theirs.slider, 'overdrive-start', ours.slider, 'overdrive-start', flags);
+    let busy = false;
+    const copy = (from, to) => {
+        if (busy)
+            return;
+        busy = true;
+        to.value = from.value;
+        busy = false;
+    };
+    s.connect(theirs.slider, 'notify::value', () => copy(theirs.slider, ours.slider));
+    s.connect(ours.slider, 'notify::value', () => copy(ours.slider, theirs.slider));
+    copy(theirs.slider, ours.slider);
+}
+
 export const SystemSliders = GObject.registerClass(
 class JoaoSystemSliders extends St.BoxLayout {
     _init(tooltip) {
@@ -38,7 +79,7 @@ class JoaoSystemSliders extends St.BoxLayout {
         slider.x_expand = true;
         slider.y_align = Clutter.ActorAlign.CENTER;
         slider.accessible_name = name;
-        slider.connect('scroll-event', (a, event) => this._onWheel(slider, event));
+        slider.connect('scroll-event', (a, event) => wheelSlider(slider, event));
         slider.connect('key-focus-in', () => row.add_style_class_name('focused'));
         slider.connect('key-focus-out', () => row.remove_style_class_name('focused'));
         row.add_child(iconButton);
@@ -48,52 +89,12 @@ class JoaoSystemSliders extends St.BoxLayout {
         return {row, slider, iconButton, icon};
     }
 
-    _onWheel(slider, event) {
-        if (event.get_flags() & Clutter.EventFlags.FLAG_POINTER_EMULATED)
-            return Clutter.EVENT_PROPAGATE;
-        let delta = 0;
-        const direction = event.get_scroll_direction();
-        if (direction === Clutter.ScrollDirection.UP)
-            delta = WHEEL_STEP;
-        else if (direction === Clutter.ScrollDirection.DOWN)
-            delta = -WHEEL_STEP;
-        else if (direction === Clutter.ScrollDirection.SMOOTH)
-            delta = -event.get_scroll_delta()[1] * WHEEL_STEP;
-        slider.value = Math.max(0, Math.min(slider.value + delta, slider.maximum_value));
-        return Clutter.EVENT_STOP;
-    }
-
-    // Two-way link between our slider and GNOME's (its own handler applies the change).
-    _mirror(ours, theirs) {
-        if (!theirs) {
-            ours.row.visible = false;
-            return;
-        }
-        const s = this._signals;
-        const flags = GObject.BindingFlags.SYNC_CREATE;
-        s.bind(theirs, 'visible', ours.row, 'visible', flags);
-        s.bind(theirs, 'icon-name', ours.icon, 'icon-name', flags);
-        s.bind(theirs.slider, 'maximum-value', ours.slider, 'maximum-value', flags);
-        s.bind(theirs.slider, 'overdrive-start', ours.slider, 'overdrive-start', flags);
-        let busy = false;
-        const copy = (from, to) => {
-            if (busy)
-                return;
-            busy = true;
-            to.value = from.value;
-            busy = false;
-        };
-        s.connect(theirs.slider, 'notify::value', () => copy(theirs.slider, ours.slider));
-        s.connect(ours.slider, 'notify::value', () => copy(ours.slider, theirs.slider));
-        copy(theirs.slider, ours.slider);
-    }
-
     _watch() {
         const output = gnome.volumeSlider();
-        this._mirror(this.volume, output);
+        mirrorSlider(this._signals, this.volume, output);
         // The speaker icon mutes, as in GNOME's menu.
         this._signals.connect(this.volume.iconButton, 'clicked', () => output?.emit('icon-clicked'));
-        this._mirror(this.brightness, gnome.brightnessSlider());
+        mirrorSlider(this._signals, this.brightness, gnome.brightnessSlider());
     }
 
     _onDestroy() {

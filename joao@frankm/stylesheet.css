@@ -778,6 +778,12 @@
 .escenas-new-scene-label { font-size: 11px; font-weight: 500; }
 .escenas-new-scene-icon { icon-size: 10px; }
 .escenas-strip.clara .escenas-new-scene { color: rgba(30, 30, 30, 0.70); }
+.escenas-strip.clara .escenas-volume-mute { color: #1e1e1e; }
+.escenas-strip.clara .escenas-volume-slider {
+  color: #1e1e1e;
+  -barlevel-background-color: rgba(30, 32, 40, 0.16);
+  -barlevel-active-background-color: #1e1e1e;
+}
 .escenas-strip.clara .escenas-new-scene:hover { background-color: rgba(0, 0, 0, 0.05); color: #1e1e1e; }
 .escenas-strip.clara .escenas-new-scene:active { background-color: rgba(0, 0, 0, 0.10); }
 
@@ -989,6 +995,26 @@
   border: 2px solid rgba(255, 255, 255, 0.6);
 }
 
+/* The strip's volume (stripVolume.js): comes out with the wheel inside "Nueva escena", with no
+   background of its own: what is behind it is that box. */
+.escenas-volume { padding: 0 10px; color: #ffffff; }
+.escenas-volume-row { spacing: 8px; }
+.escenas-volume-mute { border-radius: 9px; color: #ffffff; }
+.escenas-volume-mute:hover { color: rgba(255, 255, 255, 0.7); }
+.escenas-volume-icon { icon-size: 13px; }
+.escenas-volume-slider {
+  height: 18px;
+  color: #ffffff;
+  -barlevel-height: 3px;
+  -barlevel-background-color: rgba(255, 255, 255, 0.28);
+  -barlevel-active-background-color: #ffffff;
+  -barlevel-overdrive-color: #f8c471;
+  -barlevel-overdrive-separator-width: 0;
+  -barlevel-border-width: 0;
+  -slider-handle-radius: 5px;
+  -slider-handle-border-width: 0;
+}
+
 /* The apps of a saved scene waiting in the strip, not open yet (appShortcuts.js). */
 .escenas-shortcuts-scroll { margin: 0; }
 .escenas-shortcuts { spacing: 4px; }
@@ -1117,7 +1143,14 @@
 .joao-bubble-app { width: 28px; height: 28px; border-radius: 16px; border: 2px solid #ffffff; color: #ffffff; }
 .joao-bubble-count { min-width: 22px; height: 22px; border-radius: 11px; background-color: #ffffff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); }
 .joao-bubble-count-text { padding: 0 5px; font-size: 11px; font-weight: 800; color: #123f8a; }
-.joao-bubble-caption { font-size: 12px; font-weight: 600; color: #ffffff; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55); }
+.joao-bubble-caption {
+  padding: 3px 10px;
+  border-radius: 12px;
+  background-color: rgba(14, 14, 22, 0.78);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
 
 .joao-notify-list { color: #ffffff; }
 .joao-notify-list-shadow { border-radius: 22px; background-color: #1a2233; box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35); }

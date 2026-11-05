@@ -21,6 +21,7 @@ import {PILE_EXTRA_HEIGHT, SceneThumbnail, appOf, pileSize} from './sceneThumbna
 import {NewSceneButton} from './newSceneButton.js';
 import {AppsBubble, BUBBLE_INSET, BUBBLE_ROOM} from './appsBubble.js';
 import {AppShortcuts} from './appShortcuts.js';
+import {StripVolume} from './stripVolume.js';
 
 const ANIMATION_TIME = 200;
 const LEAVE_DELAY = 500;
@@ -137,6 +138,7 @@ export class StageStrip {
         this._connect(this.actor, 'notify::hover', () => this._onStripHover());
         this._connect(this.actor, 'notify::height', () => this._once('place', () => this._place()));
 
+        this.volume = new StripVolume(this._addButton);
         this.appsBubble = new AppsBubble(this, settings, view);
         manager.thumbnailRect = (scene, opts) => this._thumbnailRect(scene, opts);
         this._watchIsla();
@@ -170,7 +172,7 @@ export class StageStrip {
         Main.layoutManager.removeChrome(this._edge);
         this.actor.destroy();
         this._edge.destroy();
-        this.actor = this._edge = null;
+        this.actor = this._edge = this.volume = null;
     }
 
     get thumbnails() {
@@ -310,13 +312,23 @@ export class StageStrip {
 
     // ---------- the wheel: scenes that do not fit ----------
 
+    // The volume lives in the strip: if it is away (the launcher button came out alone), it comes back.
+    wheelVolume(event) {
+        if (this._hidden)
+            this.reveal();
+        return this.volume.onWheel(event);
+    }
+
     // Over a pile with several windows the wheel turns the pile (the
     // thumbnail stops the event); anywhere else on the strip it moves the
-    // list one scene at a time, when there are more scenes than shown.
+    // list one scene at a time, when there are more scenes than shown, and
+    // otherwise the volume. The launcher button always does the volume.
     _onScroll(event) {
         const order = this._order ?? [];
-        if (order.length <= (this._max ?? 0) || this._dragging)
+        if (this._dragging)
             return Clutter.EVENT_PROPAGATE;
+        if (order.length <= (this._max ?? 0))
+            return this.wheelVolume(event);
         if (event.get_flags() & Clutter.EventFlags.FLAG_POINTER_EMULATED)
             return Clutter.EVENT_STOP;
         let step = 0;
@@ -493,6 +505,8 @@ export class StageStrip {
     // The launcher page is opening or closing: the strip steps aside with a short move.
     setDrawerOpen(open) {
         this._drawerOpen = open;
+        if (open)
+            this.volume.hideNow();
         this._drawerMove = true;
         this._sync();
         this._drawerMove = false;
@@ -645,7 +659,7 @@ export class StageStrip {
             const left = this._left ? area.x : rect.x - STRIP_MARGIN;
             const right = this._left ? rect.x + rect.width + STRIP_MARGIN : area.x + area.width;
             const inside = x >= left && x < right && y >= area.y && y < area.y + area.height;
-            away = inside || this._dragging ? 0 : away + 100;
+            away = inside || this._dragging || this.volume.dragging ? 0 : away + 100;
             if (away < LEAVE_DELAY)
                 return GLib.SOURCE_CONTINUE;
             this._sources.delete(id);

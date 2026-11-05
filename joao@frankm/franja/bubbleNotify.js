@@ -330,6 +330,7 @@ export class BubbleNotify {
         circle.ease({opacity: 0, duration: FADE_TIME, mode: SOFT});
         circle.ease({scale_x: ICON_FROM, scale_y: ICON_FROM, duration: GRID_TIME, mode: SOFT});
         this._tweenRing(RING_REST, RING_TIME);
+        this._bubble.wentQuiet();
     }
 
     // The pointer has seen it, or it is gone.
@@ -389,6 +390,7 @@ export class BubbleNotify {
         this._iconCircle.set({opacity: 0, scale_x: 1, scale_y: 1});
         this._caption.hide();
         this._grid.set({scale_x: 1, scale_y: 1});
+        this._bubble.wentQuiet();
     }
 
     // ---------- the count ----------

@@ -1,0 +1,1135 @@
+/* SPDX-FileCopyrightText: 2026 Frank Molina */
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* João — lanzador completo. In St, height and width do not count the border. */
+.escenas-saved-tint {
+    background-color: rgba(6, 12, 28, 0.55);
+}
+
+.escenas-saved-block {
+    spacing: 12px;
+}
+
+/* The column is this much wider than its content on each side: the scenes' scrollbar lives there. */
+.escenas-saved-inset {
+    margin-right: 14px;
+}
+
+/* Room below the last row, so the fade does not cover it at the end of the page. */
+.escenas-saved-content {
+    spacing: 26px;
+    padding-bottom: 32px;
+}
+
+.escenas-saved-title {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.escenas-saved-subtitle {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.escenas-saved-empty {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* Search */
+.escenas-saved-search {
+    height: 46px;
+    border-radius: 24px;
+    background-color: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+    caret-color: #ffffff;
+    font-size: 16px;
+    padding: 0 22px;
+    box-shadow: none;
+}
+
+.escenas-saved-search:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: none;
+}
+
+.escenas-saved-search StLabel.hint-text {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.escenas-saved-search-icon {
+    icon-size: 18px;
+    padding-right: 10px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* Suggestion */
+.escenas-saved-suggestion {
+    border-radius: 22px;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 18px 22px;
+    spacing: 16px;
+}
+
+.escenas-saved-suggestion-clock {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.escenas-saved-suggestion-text {
+    spacing: 3px;
+}
+
+.escenas-saved-suggestion-title {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.escenas-saved-suggestion-detail {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.escenas-saved-suggestion-open {
+    height: 44px;
+    border-radius: 12px;
+    padding: 0 20px;
+    background-color: #ffffff;
+    border: 2px solid transparent;
+}
+
+.escenas-saved-suggestion-open-label {
+    color: #123f8a;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.escenas-saved-suggestion-open:hover {
+    background-color: #e8eef9;
+}
+
+.escenas-saved-suggestion-open:focus {
+    border-color: -st-accent-color;
+}
+
+.escenas-saved-suggestion-hide {
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    color: rgba(255, 255, 255, 0.85);
+    border: 2px solid transparent;
+}
+
+.escenas-saved-suggestion-hide:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.escenas-saved-suggestion-hide:focus {
+    border-color: -st-accent-color;
+}
+
+/* Scene cards. A 2px border replaces 1px + 1px of padding, so nothing moves. */
+.escenas-saved-card {
+    padding: 13px;
+    border-radius: 18px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+}
+
+.escenas-saved-card:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.escenas-saved-card.suggested {
+    padding: 12px;
+    border: 2px solid #ffffff;
+}
+
+.escenas-saved-card.first-result {
+    padding: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.escenas-saved-card:focus {
+    padding: 12px;
+    border: 2px solid -st-accent-color;
+}
+
+.escenas-saved-card.drop-target {
+    padding: 12px;
+    border: 2px solid -st-accent-color;
+    background-color: rgba(255, 255, 255, 0.24);
+}
+
+.escenas-saved-card-box {
+    spacing: 8px;
+}
+
+.escenas-saved-thumb {
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+.escenas-saved-thumb-window {
+    border-radius: 6px;
+}
+
+.escenas-saved-card-name {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.escenas-saved-card-summary {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* Save card; its dotted border is drawn with Cairo */
+.escenas-saved-add {
+    border-radius: 18px;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    border: 2px solid transparent;
+}
+
+.escenas-saved-add:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.escenas-saved-add:focus {
+    border-color: -st-accent-color;
+}
+
+.escenas-saved-add-box {
+    spacing: 12px;
+    padding: 14px;
+}
+
+.escenas-saved-add-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.18);
+}
+
+.escenas-saved-add-label {
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.escenas-saved-add.drop-target {
+    border-color: -st-accent-color;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.escenas-saved-add-hint {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* Apps */
+.escenas-saved-link {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    padding: 2px 8px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+}
+
+.escenas-saved-link:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.escenas-saved-link:focus {
+    border-color: -st-accent-color;
+}
+
+.escenas-saved-app {
+    height: 92px;
+    border-radius: 16px;
+    padding: 0 4px;
+    color: #ffffff;
+    border: 2px solid transparent;
+}
+
+.escenas-saved-app:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.escenas-saved-app.first-result {
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.escenas-saved-app:focus {
+    border-color: -st-accent-color;
+}
+
+.escenas-saved-app-name {
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 6px;
+}
+
+/* Dialogs */
+.escenas-saved-dialog-box {
+    spacing: 10px;
+    min-width: 460px;
+}
+
+.escenas-saved-dialog-title {
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 6px;
+}
+
+.escenas-saved-dialog-field {
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 6px;
+}
+
+.escenas-saved-dialog-clash {
+    font-size: 12px;
+    color: #f8c471;
+}
+
+.escenas-saved-dialog-layouts {
+    spacing: 6px;
+}
+
+.escenas-saved-dialog-layout {
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 12px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px solid transparent;
+}
+
+.escenas-saved-dialog-layout:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.escenas-saved-dialog-layout:focus {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.escenas-saved-dialog-layout:checked {
+    background-color: -st-accent-color;
+    color: #ffffff;
+}
+
+/* Header */
+.escenas-full-header {
+    color: #ffffff;
+}
+
+.escenas-full-clock {
+    border-radius: 12px;
+    padding: 0 6px;
+    border: 2px solid transparent;
+    color: #ffffff;
+}
+
+.escenas-full-clock:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.escenas-full-clock:focus {
+    border-color: -st-accent-color;
+}
+
+.escenas-full-time {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.escenas-full-date {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.escenas-full-status {
+    spacing: 10px;
+}
+
+.escenas-full-privacy {
+    height: 30px;
+    border-radius: 15px;
+    padding: 0 12px;
+    background-color: #f28c28;
+    color: #1a1206;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.escenas-full-chip {
+    height: 34px;
+    border-radius: 18px;
+    padding: 0 12px;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+}
+
+.escenas-full-chip:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.escenas-full-chip:focus {
+    border: 1px solid -st-accent-color;
+}
+
+.escenas-full-chip-box {
+    spacing: 8px;
+}
+
+.escenas-full-chip-icon {
+    icon-size: 16px;
+}
+
+.escenas-full-chip-label {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.escenas-full-fold {
+    width: 34px;
+    height: 34px;
+    border-radius: 18px;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+}
+
+.escenas-full-fold:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.escenas-full-fold:focus {
+    border: 1px solid -st-accent-color;
+}
+
+/* Main column */
+.escenas-full-fade {
+    background-gradient-direction: vertical;
+    background-gradient-start: rgba(10, 22, 52, 0);
+    background-gradient-end: rgba(10, 22, 52, 0.95);
+}
+
+.escenas-full-results {
+    spacing: 8px;
+}
+
+.escenas-full-result {
+    height: 40px;
+    border-radius: 14px;
+    padding: 0 14px;
+    background-color: rgba(255, 255, 255, 0.14);
+    border: 2px solid transparent;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.escenas-full-result:hover {
+    background-color: rgba(255, 255, 255, 0.22);
+}
+
+.escenas-full-result.first-result {
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.escenas-full-result:focus {
+    border-color: -st-accent-color;
+}
+
+.escenas-full-result-box {
+    spacing: 8px;
+}
+
+/* System panel */
+.escenas-full-panel {
+    border-radius: 26px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 18px;
+    spacing: 16px;
+    color: #ffffff;
+}
+
+.escenas-full-panel.over-apps {
+    background-color: rgba(18, 30, 62, 0.98);
+}
+
+.escenas-full-panel-blocks {
+    spacing: 16px;
+}
+
+.escenas-full-separator {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+.escenas-full-block {
+    spacing: 8px;
+}
+
+.escenas-full-block-title {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.escenas-full-empty {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.escenas-full-tooltip {
+    border-radius: 8px;
+    padding: 5px 9px;
+    background-color: rgba(10, 18, 40, 0.95);
+    color: #ffffff;
+    font-size: 12px;
+}
+
+/* A ring around whatever the search box points at. */
+.escenas-full-slider-row.highlighted,
+.escenas-full-toggle.highlighted,
+.escenas-full-profiles.highlighted {
+    border-color: -st-accent-color;
+}
+
+.escenas-full-sliders {
+    spacing: 6px;
+}
+
+.escenas-full-slider-row {
+    spacing: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+}
+
+.escenas-full-slider-row.focused {
+    border-color: -st-accent-color;
+}
+
+.escenas-full-slider-icon {
+    color: #ffffff;
+    border-radius: 6px;
+}
+
+.escenas-full-slider-icon:hover {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.escenas-full-slider {
+    height: 20px;
+    color: #ffffff;
+    -barlevel-height: 6px;
+    -barlevel-background-color: rgba(255, 255, 255, 0.2);
+    -barlevel-active-background-color: #ffffff;
+    -barlevel-overdrive-color: #f8c471;
+    -barlevel-overdrive-separator-width: 0;
+    -barlevel-border-width: 0;
+    -slider-handle-radius: 8px;
+    -slider-handle-border-width: 0;
+}
+
+.escenas-full-toggles {
+    -joao-gap: 8px;
+}
+
+.escenas-full-toggle {
+    height: 44px;
+    border-radius: 15px;
+    padding: 0 10px;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 2px solid transparent;
+    color: #ffffff;
+}
+
+.escenas-full-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.escenas-full-toggle:checked {
+    background-color: #ffffff;
+    color: #123f8a;
+}
+
+.escenas-full-toggle:checked:hover {
+    background-color: #e8eef9;
+}
+
+.escenas-full-toggle:focus {
+    border-color: -st-accent-color;
+}
+
+.escenas-full-toggle-box {
+    spacing: 8px;
+}
+
+.escenas-full-toggle-title {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.escenas-full-toggle-subtitle {
+    font-size: 10px;
+}
+
+.escenas-full-profiles {
+    border-radius: 12px;
+    padding: 3px;
+    background-color: rgba(0, 0, 0, 0.22);
+    border: 2px solid transparent;
+}
+
+.escenas-full-profile {
+    height: 28px;
+    border-radius: 9px;
+    border: 2px solid transparent;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.escenas-full-profile:hover {
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+.escenas-full-profile:checked {
+    background-color: #ffffff;
+    color: #123f8a;
+}
+
+.escenas-full-profile:focus {
+    border-color: -st-accent-color;
+}
+
+.escenas-full-week {
+    spacing: 4px;
+}
+
+.escenas-full-day {
+    height: 44px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    color: #ffffff;
+}
+
+.escenas-full-day:hover {
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+.escenas-full-day.today {
+    background-color: #ffffff;
+    color: #123f8a;
+}
+
+.escenas-full-day:focus {
+    border-color: -st-accent-color;
+}
+
+.escenas-full-day-name {
+    font-size: 10px;
+}
+
+.escenas-full-day-number {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.escenas-full-notifications {
+    spacing: 6px;
+}
+
+/* 56px high with its border: keep in step with notifications.js */
+.escenas-full-notification {
+    height: 52px;
+    border-radius: 12px;
+    padding: 0 8px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 2px solid transparent;
+    color: #ffffff;
+}
+
+.escenas-full-notification:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.escenas-full-notification:focus {
+    border-color: -st-accent-color;
+}
+
+.escenas-full-notification-box {
+    spacing: 10px;
+}
+
+.escenas-full-notification-meta {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.escenas-full-notification-text {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.escenas-full-footer {
+    spacing: 8px;
+}
+
+.escenas-full-settings {
+    height: 40px;
+    border-radius: 14px;
+    padding: 0 12px;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 2px solid transparent;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.escenas-full-settings:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.escenas-full-settings:focus {
+    border-color: -st-accent-color;
+}
+
+.escenas-full-power {
+    spacing: 4px;
+}
+
+.escenas-full-power-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 22px;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 2px solid transparent;
+    color: #ffffff;
+}
+
+.escenas-full-power-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.escenas-full-power-button:focus {
+    border-color: -st-accent-color;
+}
+
+.escenas-full-power-button.poweroff {
+    background-color: #ffffff;
+    color: #b42318;
+}
+
+.escenas-full-power-button.poweroff:hover {
+    background-color: #f3dcda;
+}
+
+/* ========== Scenes: the strip (franja/) ========== */
+/* ---------- the strip panel (tones: propia = Escenas' own dark glass; clara / oscura /
+   aurora = IslaDock's skins) ---------- */
+.escenas-strip {
+  spacing: 10px;
+  padding: 10px 7px;
+  border-radius: 20px;
+  background-color: rgba(14, 14, 22, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+  color: #f4f5fa;
+}
+.escenas-strip.propia.encima { background-color: rgba(14, 14, 22, 0.32); }
+.escenas-strip.oscura { background-color: rgba(18, 20, 34, 0.86); border-color: rgba(255, 255, 255, 0.10); }
+.escenas-strip.aurora { background-color: rgba(44, 50, 74, 0.74); border-color: rgba(255, 255, 255, 0.06); box-shadow: none; }
+.escenas-strip.clara {
+  background-color: rgba(255, 255, 255, 0.81);
+  border-color: rgba(30, 32, 40, 0.05);
+  box-shadow: 0 14px 30px rgba(60, 55, 45, 0.14);
+  color: #1e1e1e;
+}
+
+/* "+ Nueva escena". Its dashed border
+   is painted with Cairo in the text color (newSceneButton.js); the accent
+   tint while something is dropped on it is set from code. */
+.escenas-new-scene {
+  height: 26px;
+  border-radius: 8px;
+  margin-bottom: 6px;           /* + the strip's 10 px spacing = 16 px to the first thumbnail */
+  color: rgba(255, 255, 255, 0.75);
+  transition-duration: 150ms;
+}
+.escenas-new-scene:hover { background-color: rgba(255, 255, 255, 0.08); color: #ffffff; }
+.escenas-new-scene:active { background-color: rgba(255, 255, 255, 0.14); }
+.escenas-new-scene:focus { border: 1px solid -st-accent-color; }
+.escenas-new-scene-content { spacing: 6px; }
+.escenas-new-scene-label { font-size: 11px; font-weight: 500; }
+.escenas-new-scene-icon { icon-size: 10px; }
+.escenas-strip.clara .escenas-new-scene { color: rgba(30, 30, 30, 0.70); }
+.escenas-strip.clara .escenas-new-scene:hover { background-color: rgba(0, 0, 0, 0.05); color: #1e1e1e; }
+.escenas-strip.clara .escenas-new-scene:active { background-color: rgba(0, 0, 0, 0.10); }
+
+.escenas-list { spacing: 10px; }
+.escenas-list.tarjetas { spacing: 20px; }
+
+/* ---------- "Tarjeta" style ---------- */
+.escenas-card {
+  padding: 10px;
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  transition-duration: 160ms;
+}
+.escenas-card:hover { background-color: rgba(255, 255, 255, 0.16); }
+.escenas-card:focus { border-color: -st-accent-color; }
+.escenas-card-box { spacing: 10px; }
+.escenas-card-header { spacing: 8px; }
+.escenas-card-icon { border-radius: 6px; }
+.escenas-card-initial {
+  width: 20px;
+  height: 20px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: bold;
+  text-align: center;
+}
+.escenas-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f4f5fa;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+.escenas-card-count {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 9px;
+  background-color: rgba(255, 255, 255, 0.20);
+  color: #f4f5fa;
+}
+.escenas-card-preview {
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.25);
+}
+.escenas-activity-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 9px;
+  border: 3px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+.escenas-strip.clara .escenas-card { background-color: rgba(0, 0, 0, 0.04); border-color: rgba(0, 0, 0, 0.10); }
+.escenas-strip.clara .escenas-card:hover { background-color: rgba(0, 0, 0, 0.08); }
+.escenas-strip.clara .escenas-card-name { color: #1e1e1e; text-shadow: none; }
+.escenas-strip.clara .escenas-card-count { background-color: rgba(0, 0, 0, 0.08); color: #1e1e1e; }
+
+/* ---------- a thumbnail (a fan of window pictures) ---------- */
+.escenas-thumb { padding: 0; border-radius: 12px; }
+.escenas-thumb:focus .escenas-fan-frame { border-color: -st-accent-color; }
+
+.escenas-fan-card {
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.22);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+}
+.escenas-strip.clara .escenas-fan-card { box-shadow: 0 4px 12px rgba(40, 35, 30, 0.18); }
+.escenas-fan-frame {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+.escenas-strip.clara .escenas-fan-frame { border-color: rgba(0, 0, 0, 0.08); }
+
+.escenas-badge-app {
+  border-radius: 9px;
+  background-color: #2b2c36;
+  border: 2px solid rgba(0, 0, 0, 0.55);
+}
+.escenas-strip.clara .escenas-badge-app { background-color: #ffffff; border-color: rgba(0, 0, 0, 0.30); }
+.escenas-badge-count {
+  min-width: 8px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  border: 2px solid rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  font-size: 7.5pt;
+  font-weight: bold;
+  text-align: center;
+}
+
+.escenas-thumb-label { padding-top: 5px; }
+.escenas-thumb-name { font-size: 12px; font-weight: 700; }
+
+/* ---------- turning the pile ---------- */
+/* Darkens a card behind the front one (its opacity says how much). */
+.escenas-fan-shade { background-color: #000000; }
+.escenas-stack-arrow {
+  width: 20px;
+  height: 26px;
+  border-radius: 7px;
+  /* Light key with a dark edge and shadow: readable over dark windows (Files
+     with a dark theme) and over light ones. */
+  background-color: rgba(255, 255, 255, 0.92);
+  color: #1e1e1e;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+  transition-duration: 120ms;
+}
+.escenas-stack-arrow:hover { background-color: #ffffff; color: #000000; }
+.escenas-stack-arrow:active { background-color: rgba(225, 225, 230, 1); }
+/* Close a window from the strip: the same light key, red under the pointer. */
+.escenas-close {
+  width: 20px;
+  height: 20px;
+  border-radius: 11px;
+  background-color: rgba(255, 255, 255, 0.92);
+  color: #1e1e1e;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.6);
+  transition-duration: 120ms;
+}
+.escenas-close:hover { background-color: #c01c28; color: #ffffff; }
+.escenas-close:active { background-color: #a51d2d; color: #ffffff; }
+/* Dots: white; the inactive ones are dimmed to 45 % from the code (animated). */
+.escenas-stack-dots { spacing: 5px; padding-top: 5px; }
+.escenas-stack-dot { height: 7px; border-radius: 4px; background-color: #ffffff; }
+.escenas-stack-dot.active { background-color: #ffffff; }
+.escenas-stack-dots-text { font-size: 10px; font-weight: bold; }
+.escenas-stack-label { spacing: 1px; }
+.escenas-stack-hint { font-size: 10px; color: rgba(255, 255, 255, 0.85); }
+.escenas-strip.clara .escenas-stack-dot,
+.escenas-strip.clara .escenas-stack-dot.active { background-color: #1e1e1e; }
+.escenas-strip.clara .escenas-stack-hint { color: rgba(30, 30, 30, 0.70); }
+.escenas-strip.propia .escenas-stack-hint,
+.escenas-strip.propia .escenas-stack-dots-text { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85); }
+.escenas-strip.propia .escenas-stack-dot { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
+/* Very transparent panel: shadows keep the text readable over light windows. */
+.escenas-strip.propia .escenas-thumb-name,
+.escenas-strip.propia .escenas-new-scene-label { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85); }
+
+/* ---------- drop zone (a thumbnail dragged onto the stage) ---------- */
+.escenas-merge-zone {
+  color: #ffffff;
+  border-radius: 24px;
+  background-color: rgba(20, 20, 30, 0.10);
+}
+.escenas-merge-zone:drop { background-color: rgba(20, 20, 30, 0.25); }
+.escenas-merge-zone-label {
+  margin: 24px;
+  font-size: 13pt;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* ---------- top bar chip ---------- */
+.escenas-chip-box { spacing: 7px; }
+.escenas-chip-dot { width: 9px; height: 9px; border-radius: 5px; }
+.escenas-chip-label { font-weight: bold; }
+
+/* Keeps the last thumbnail's name clear of the bubble: 42 = half the ring + a gap. */
+.escenas-strip.con-burbuja { padding-bottom: 42px; }
+
+/* The bubble on the strip's bottom edge that opens the launcher (appsBubble.js). In St,
+   width and height leave the border out: 58 + 2 x 1 = 60 px. */
+.escenas-apps-bubble-root { width: 74px; height: 74px; }
+.escenas-apps-bubble {
+  width: 58px;
+  height: 58px;
+  border-radius: 30px;
+  background-color: #2a5fae;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+}
+.escenas-apps-bubble:hover { background-color: #3f6fb6; }
+.escenas-apps-bubble:active { background-color: #24528f; }
+.escenas-apps-bubble.open { background-color: rgba(255, 255, 255, 0.22); box-shadow: none; }
+.escenas-apps-bubble.open:hover { background-color: rgba(255, 255, 255, 0.3); }
+/* Cuts the strip's outline where it passes behind the bubble. */
+.escenas-apps-bubble-ring {
+  width: 70px;
+  height: 70px;
+  border-radius: 35px;
+  background-color: rgba(28, 95, 189, 0.9);
+}
+.escenas-apps-bubble-ring.open { background-color: rgba(255, 255, 255, 0.12); }
+/* Lit while the microphone, the camera or the screen is in use: 60 + 2 x 3 = 66 px. */
+.escenas-apps-bubble-privacy {
+  width: 60px;
+  height: 60px;
+  border-radius: 33px;
+  border: 3px solid transparent;
+}
+.escenas-apps-bubble-privacy.microphone { border-color: #f28c28; box-shadow: 0 0 12px 2px rgba(242, 140, 40, 0.75); }
+.escenas-apps-bubble-privacy.camera { border-color: #3ddc84; box-shadow: 0 0 12px 2px rgba(61, 220, 132, 0.75); }
+.escenas-apps-bubble-privacy.screen { border-color: #e5484d; box-shadow: 0 0 12px 2px rgba(229, 72, 77, 0.75); }
+.escenas-apps-bubble-focus {
+  width: 70px;
+  height: 70px;
+  border-radius: 37px;
+  border: 2px solid -st-accent-color;
+}
+.escenas-apps-bubble-light {
+  width: 68px;
+  height: 68px;
+  border-radius: 36px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+}
+
+/* The apps of a saved scene waiting in the strip, not open yet (appShortcuts.js). */
+.escenas-shortcuts-scroll { margin: 0; }
+.escenas-shortcuts { spacing: 4px; }
+.escenas-shortcut { height: 40px; border-radius: 10px; background-color: rgba(255, 255, 255, 0.08); }
+.escenas-shortcut:hover { background-color: rgba(255, 255, 255, 0.16); }
+.escenas-strip.clara .escenas-shortcut { background-color: rgba(30, 32, 40, 0.06); }
+.escenas-strip.clara .escenas-shortcut:hover { background-color: rgba(30, 32, 40, 0.12); }
+.escenas-shortcut-open { padding: 0 4px 0 8px; border-radius: 10px; }
+.escenas-shortcut-name { margin-left: 8px; font-size: 12px; font-weight: 500; }
+.escenas-shortcut-remove { width: 22px; height: 22px; margin-right: 6px; border-radius: 11px; }
+.escenas-shortcut-remove:hover { background-color: rgba(255, 255, 255, 0.2); }
+
+/* The switch of a saved scene: on, a click opens its apps; off, they wait in the strip. */
+.escenas-saved-toggle {
+  padding: 2px;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+.escenas-saved-toggle:hover { border-color: rgba(255, 255, 255, 0.7); }
+.escenas-saved-toggle:focus { border: 1px solid -st-accent-color; }
+.escenas-saved-toggle:checked { background-color: -st-accent-color; }
+.escenas-saved-toggle-knob { width: 14px; height: 14px; border-radius: 7px; background-color: #ffffff; }
+
+/* Microphone, camera, screen: dots in the corner and their list. */
+.joao-privacy-dots { padding: 8px; spacing: 6px; }
+.joao-privacy-dot { width: 12px; height: 12px; border-radius: 6px; }
+.joao-privacy-dot.microphone { background-color: #f28c28; box-shadow: 0 0 0 3px rgba(242, 140, 40, 0.3); }
+.joao-privacy-dot.camera { background-color: #3ddc84; box-shadow: 0 0 0 3px rgba(61, 220, 132, 0.3); }
+.joao-privacy-dot.screen { background-color: #e5484d; box-shadow: 0 0 0 3px rgba(229, 72, 77, 0.3); }
+.joao-privacy-list {
+    width: 280px;
+    padding: 6px;
+    spacing: 4px;
+    border-radius: 20px;
+    background-color: rgba(10, 14, 26, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+}
+.joao-privacy-row { padding: 8px; spacing: 10px; border-radius: 14px; }
+.joao-privacy-row.microphone { background-color: rgba(242, 140, 40, 0.13); }
+.joao-privacy-row.camera { background-color: rgba(61, 220, 132, 0.13); }
+.joao-privacy-row.screen { background-color: rgba(229, 72, 77, 0.13); }
+.joao-privacy-row-icon { width: 30px; height: 30px; border-radius: 15px; }
+.joao-privacy-row-icon.microphone, .joao-privacy-badge-face.microphone { background-color: #f28c28; color: #1a1206; }
+.joao-privacy-row-icon.camera, .joao-privacy-badge-face.camera { background-color: #3ddc84; color: #0a2a18; }
+.joao-privacy-row-icon.screen, .joao-privacy-badge-face.screen { background-color: #e5484d; color: #ffffff; }
+.joao-privacy-row-device { font-size: 12px; font-weight: 700; }
+.joao-privacy-row-app { font-size: 11px; color: rgba(255, 255, 255, 0.82); }
+.joao-privacy-row-go:hover .joao-privacy-row-app, .joao-privacy-row-go:focus .joao-privacy-row-app { color: #ffffff; text-decoration: underline; }
+.joao-privacy-row-stop {
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.14);
+}
+.joao-privacy-row-stop:hover, .joao-privacy-row-stop:focus { background-color: #ffffff; color: #123f8a; }
+
+/* The same devices on a thumbnail of the strip. */
+.joao-privacy-frame { border-radius: 10px; border: 2px solid transparent; }
+.joao-privacy-frame.microphone { border-color: #f28c28; box-shadow: 0 0 0 4px rgba(242, 140, 40, 0.25); }
+.joao-privacy-frame.camera { border-color: #3ddc84; box-shadow: 0 0 0 4px rgba(61, 220, 132, 0.25); }
+.joao-privacy-frame.screen { border-color: #e5484d; box-shadow: 0 0 0 4px rgba(229, 72, 77, 0.25); }
+.joao-privacy-badges { spacing: 4px; }
+.joao-privacy-badge { width: 28px; height: 28px; padding: 0; border-radius: 14px; }
+.joao-privacy-badge-face { width: 28px; height: 28px; border-radius: 14px; }
+.joao-privacy-badge-halo { width: 28px; height: 28px; border-radius: 14px; }
+.joao-privacy-badge-halo.microphone { background-color: #f28c28; }
+.joao-privacy-badge-halo.camera { background-color: #3ddc84; }
+.joao-privacy-badge-halo.screen { background-color: #e5484d; }
+
+/* Notifications: the island. */
+.joao-island { color: #ffffff; }
+.joao-island-shadow { background-color: #1a2233; box-shadow: 0 18px 44px rgba(0, 0, 0, 0.3); }
+.joao-island-tint { background-color: rgba(10, 20, 40, 0.55); }
+.joao-island-face { border: 1px solid rgba(255, 255, 255, 0.3); }
+
+.joao-island-pill { height: 40px; }
+.joao-island-pill-box { padding: 0 16px 0 6px; spacing: 9px; }
+.joao-island-pill-icon { width: 28px; height: 28px; border-radius: 14px; background-color: rgba(255, 255, 255, 0.16); }
+.joao-island-pill-text { font-size: 12px; font-weight: 700; color: #ffffff; }
+.joao-island-pill-more {
+    font-size: 11px;
+    font-weight: 700;
+    color: #123f8a;
+    background-color: #ffffff;
+    border-radius: 9px;
+    padding: 1px 6px;
+}
+.joao-island-track { height: 2px; margin: 0 16px; border-radius: 1px; background-color: rgba(255, 255, 255, 0.12); }
+.joao-island-fill { height: 2px; border-radius: 1px; background-color: rgba(255, 255, 255, 0.75); }
+
+.joao-island-card { width: 380px; }
+.joao-island-card-box { padding: 16px; spacing: 12px; }
+.joao-island-card-head { spacing: 10px; }
+.joao-island-card-icon { width: 34px; height: 34px; border-radius: 17px; background-color: rgba(255, 255, 255, 0.16); }
+.joao-island-card-title { font-size: 14px; font-weight: 700; color: #ffffff; }
+.joao-island-card-meta { font-size: 11px; color: rgba(255, 255, 255, 0.82); }
+.joao-island-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 14px;
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.14);
+}
+.joao-island-close:hover, .joao-island-close:focus { background-color: #ffffff; color: #123f8a; }
+.joao-island-card-body { font-size: 13px; color: rgba(255, 255, 255, 0.9); }
+.joao-island-actions { spacing: 8px; }
+.joao-island-action {
+    height: 40px;
+    border-radius: 20px;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.14);
+}
+.joao-island-action:hover, .joao-island-action:focus { background-color: rgba(255, 255, 255, 0.26); }
+.joao-island-action.primary { background-color: #ffffff; color: #123f8a; }
+.joao-island-action.primary:hover, .joao-island-action.primary:focus { background-color: rgba(255, 255, 255, 0.86); }
+
+/* Notifications in the strip's bubble (franja/bubbleNotify.js, franja/notifyList.js). */
+.joao-bubble-wave { width: 58px; height: 58px; border-radius: 32px; border: 3px solid #3584e4; }
+/* 28 + 2 x 2 = 32 px. */
+.joao-bubble-app { width: 28px; height: 28px; border-radius: 16px; border: 2px solid #ffffff; color: #ffffff; }
+.joao-bubble-count { min-width: 22px; height: 22px; border-radius: 11px; background-color: #ffffff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); }
+.joao-bubble-count-text { padding: 0 5px; font-size: 11px; font-weight: 800; color: #123f8a; }
+.joao-bubble-caption { font-size: 12px; font-weight: 600; color: #ffffff; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55); }
+
+.joao-notify-list { color: #ffffff; }
+.joao-notify-list-shadow { border-radius: 22px; background-color: #1a2233; box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35); }
+.joao-notify-list-face { border-radius: 22px; border: 1px solid rgba(255, 255, 255, 0.28); }
+.joao-notify-list-box { padding: 8px; spacing: 6px; }
+.joao-notify-rows { spacing: 6px; }
+.joao-notify-row { border-radius: 14px; background-color: rgba(255, 255, 255, 0.08); color: #ffffff; }
+.joao-notify-row:hover, .joao-notify-row:focus { background-color: rgba(255, 255, 255, 0.18); }
+.joao-notify-row-box { padding: 6px 10px 6px 6px; spacing: 9px; }
+.joao-notify-row-icon { width: 30px; height: 30px; border-radius: 15px; color: #ffffff; }
+.joao-notify-row-title { font-size: 12px; font-weight: 700; color: #ffffff; }
+.joao-notify-row-body { font-size: 11px; color: rgba(255, 255, 255, 0.85); }
+.joao-notify-empty { padding: 12px; font-size: 12px; color: rgba(255, 255, 255, 0.85); }
+.joao-notify-clear { padding: 4px 12px; border-radius: 13px; font-size: 11px; font-weight: 700; color: #ffffff; background-color: rgba(255, 255, 255, 0.14); }
+.joao-notify-clear:hover, .joao-notify-clear:focus { background-color: rgba(255, 255, 255, 0.26); }

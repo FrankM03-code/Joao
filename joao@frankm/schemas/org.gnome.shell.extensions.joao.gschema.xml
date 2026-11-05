@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- João: created and designed by Frank Molina. -->
+<schemalist gettext-domain="joao">
+  <schema id="org.gnome.shell.extensions.joao" path="/org/gnome/shell/extensions/joao/">
+    <key name="saved-scenes-shortcut" type="as">
+      <default><![CDATA[['<Super><Shift>space']]]></default>
+      <summary>Abrir la pantalla de escenas guardadas</summary>
+    </key>
+    <key name="replace-super" type="b">
+      <default>true</default>
+      <summary>La tecla Super sola abre la pantalla en vez de Actividades</summary>
+    </key>
+    <key name="saved-scenes-on-login" type="b">
+      <default>false</default>
+      <summary>Mostrarla al iniciar sesión</summary>
+    </key>
+    <key name="saved-scenes-suggestions" type="b">
+      <default>true</default>
+      <summary>Sugerir una escena según la hora</summary>
+    </key>
+    <key name="saved-scenes-blur" type="b">
+      <default>true</default>
+      <summary>Desenfocar el fondo de la pantalla</summary>
+    </key>
+    <key name="restore-timeout" type="i">
+      <range min="2" max="60"/>
+      <default>8</default>
+      <summary>Segundos máximos esperando ventanas al restaurar</summary>
+    </key>
+    <key name="restore-reuse-windows" type="b">
+      <default>true</default>
+      <summary>Reutilizar ventanas ya abiertas en vez de abrir nuevas</summary>
+    </key>
+    <key name="hide-top-bar" type="b">
+      <default>true</default>
+      <summary>Ocultar la barra superior de GNOME</summary>
+    </key>
+    <key name="system-panel-visible" type="b">
+      <default>true</default>
+      <summary>Mostrar el panel del sistema dentro del lanzador</summary>
+    </key>
+    <key name="launcher-today-shortcut" type="as">
+      <default><![CDATA[['<Super>n']]]></default>
+      <summary>Abrir con el foco en Hoy</summary>
+    </key>
+    <key name="launcher-settings-shortcut" type="as">
+      <default><![CDATA[['<Super>s']]]></default>
+      <summary>Abrir con el foco en el panel del sistema</summary>
+    </key>
+    <key name="privacy-indicator-corner" type="s">
+      <choices>
+        <choice value="top-center"/>
+        <choice value="top-right"/>
+        <choice value="top-left"/>
+        <choice value="bottom-right"/>
+        <choice value="bottom-left"/>
+      </choices>
+      <default>'top-center'</default>
+      <summary>Dónde van los puntos de privacidad (arriba al centro no tapa la × de una ventana maximizada)</summary>
+    </key>
+    <key name="launcher-open-effect" type="s">
+      <choices>
+        <choice value="wave"/>
+        <choice value="fade"/>
+        <choice value="none"/>
+      </choices>
+      <default>'wave'</default>
+      <summary>Efecto al abrir el cajón: onda desde la burbuja, fundido o ninguno</summary>
+    </key>
+    <key name="wm-keys-taken" type="s">
+      <default>'{}'</default>
+      <summary>Atajos quitados a GNOME para que funcione el de João (se devuelven al apagarla)</summary>
+    </key>
+    <!-- Scenes and their strip -->
+    <key name="modo-activo" type="b">
+      <default>true</default>
+      <summary>Modo escenas encendido</summary>
+    </key>
+    <key name="ocultar-automatico" type="b">
+      <default>true</default>
+      <summary>Ocultar la franja cuando una ventana la tapa, está maximizada o en pantalla completa</summary>
+    </key>
+    <key name="max-miniaturas" type="i">
+      <range min="1" max="10"/>
+      <default>5</default>
+      <summary>Número máximo de miniaturas en la franja (estilo abanico)</summary>
+    </key>
+    <key name="max-tarjetas" type="i">
+      <range min="1" max="10"/>
+      <default>5</default>
+      <summary>Número máximo de tarjetas en la franja (estilo tarjeta)</summary>
+    </key>
+    <key name="lado" type="s">
+      <choices>
+        <choice value="izquierda"/>
+        <choice value="derecha"/>
+      </choices>
+      <default>'izquierda'</default>
+      <summary>Lado de la pantalla donde va la franja</summary>
+    </key>
+    <key name="atajo-alternar" type="as">
+      <default><![CDATA[['<Super><Control>e']]]></default>
+      <summary>Atajo para encender o apagar el modo escenas</summary>
+    </key>
+    <key name="atajo-separar" type="as">
+      <default><![CDATA[['<Shift><Super>s']]]></default>
+      <summary>Atajo para sacar la ventana enfocada de su escena</summary>
+    </key>
+    <key name="estilo-miniaturas" type="s">
+      <choices>
+        <choice value="tarjeta"/>
+        <choice value="abanico"/>
+      </choices>
+      <default>'abanico'</default>
+      <summary>Estilo de las miniaturas: abanico de ventanas o tarjeta de vidrio</summary>
+    </key>
+    <key name="ordenar-ventanas" type="b">
+      <default>true</default>
+      <summary>Repartir lado a lado las ventanas de la escena activa</summary>
+    </key>
+    <key name="girar-con-rueda" type="b">
+      <default>true</default>
+      <summary>Girar la pila de una miniatura con la rueda del ratón</summary>
+    </key>
+    <key name="flechas-pila" type="b">
+      <default>true</default>
+      <summary>Mostrar flechas sobre la pila al pasar el ratón</summary>
+    </key>
+    <key name="invertir-rueda" type="b">
+      <default>false</default>
+      <summary>Invertir la dirección de la rueda al girar la pila</summary>
+    </key>
+    <key name="color-franja" type="s">
+      <choices>
+        <choice value="isla"/>
+        <choice value="oscuro"/>
+        <choice value="claro"/>
+      </choices>
+      <default>'oscuro'</default>
+      <summary>Color de la franja: como IslaDock, oscuro o claro</summary>
+    </key>
+    <key name="apps-bubble-visible" type="b">
+      <default>true</default>
+      <summary>Mostrar la burbuja de apps en la franja</summary>
+    </key>
+    <key name="keep-awake" type="b">
+      <default>false</default>
+      <summary>Modo activo: el equipo no se suspende ni apaga la pantalla por inactividad</summary>
+    </key>
+    <key name="strip-shortcuts" type="as">
+      <default>[]</default>
+      <summary>Apps de una escena guardada que esperan en la franja, aún sin abrir</summary>
+    </key>
+    <key name="privacy-show-when-panel" type="b">
+      <default>false</default>
+      <summary>Mostrar los puntos de privacidad aunque la barra de GNOME esté visible</summary>
+    </key>
+    <key name="privacy-pulse" type="b">
+      <default>true</default>
+      <summary>Latido de la insignia en la escena</summary>
+    </key>
+    <key name="privacy-badges" type="b">
+      <default>true</default>
+      <summary>Marcar en la franja la escena de la app que usa el micrófono, la cámara o la pantalla</summary>
+    </key>
+    <key name="privacy-list-shortcut" type="as">
+      <default><![CDATA[['<Super><Shift>p']]]></default>
+      <summary>Abrir la lista de privacidad</summary>
+    </key>
+    <key name="island-glass" type="d">
+      <range min="0.08" max="0.6"/>
+      <default>0.20</default>
+      <summary>Transparencia del vidrio de la isla</summary>
+    </key>
+    <key name="island-blur" type="b">
+      <default>true</default>
+      <summary>Desenfocar el fondo de la isla</summary>
+    </key>
+    <key name="island-timeout" type="i">
+      <range min="2" max="30"/>
+      <default>5</default>
+      <summary>Segundos que dura la píldora</summary>
+    </key>
+    <key name="island-expand-on-hover" type="b">
+      <default>true</default>
+      <summary>Expandir la isla al pasar el ratón (si no, solo con clic)</summary>
+    </key>
+    <key name="island-auto-contrast" type="b">
+      <default>true</default>
+      <summary>Oscurecer el vidrio sobre fondos claros</summary>
+    </key>
+    <key name="island-firefox-as-whatsapp" type="b">
+      <default>false</default>
+      <summary>Mostrar como WhatsApp las notificaciones de Firefox</summary>
+    </key>
+    <key name="island-focus-shortcut" type="as">
+      <default><![CDATA[['<Super><Shift>n']]]></default>
+      <summary>Abrir la notificación que se está viendo en la isla</summary>
+    </key>
+    <key name="notify-style" type="s">
+      <choices>
+        <choice value="bubble"/>
+        <choice value="island"/>
+      </choices>
+      <default>'bubble'</default>
+      <summary>Dónde avisan las notificaciones: en la burbuja de la franja o en la isla</summary>
+    </key>
+    <key name="notify-caption-seconds" type="i">
+      <range min="1" max="30"/>
+      <default>3</default>
+      <summary>Segundos que dura la línea bajo la burbuja</summary>
+    </key>
+    <key name="notify-hide-message-text" type="b">
+      <default>true</default>
+      <summary>En mensajes, no mostrar el texto en la línea</summary>
+    </key>
+    <key name="bubble-notifications" type="b">
+      <default>true</default>
+      <summary>Animar la burbuja con las notificaciones</summary>
+    </key>
+    <key name="bubble-notify-list" type="b">
+      <default>true</default>
+      <summary>Mostrar la lista al pasar el ratón por la burbuja</summary>
+    </key>
+  </schema>
+</schemalist>

@@ -26,17 +26,29 @@ import {DesktopAtLogin} from './escritorio/startup.js';
 import {EscenasMode} from './franja/escenasMode.js';
 import {SuperKey} from './escritorio/superKey.js';
 import {TopBar} from './escritorio/topBar.js';
+import {Tiling} from './ventanas/tiling.js';
 
 const WM_SCHEMA = 'org.gnome.desktop.wm.keybindings';
 const SHELL_SCHEMA = 'org.gnome.shell.keybindings';
+const MUTTER_SCHEMA = 'org.gnome.mutter.keybindings';
 // GNOME's own shortcuts that João's defaults use; one accelerator can only have one owner.
 const GNOME_KEYS = {
     'switch-input-source': WM_SCHEMA,
     'switch-input-source-backward': WM_SCHEMA,
     'toggle-quick-settings': SHELL_SCHEMA,
     'focus-active-notification': SHELL_SCHEMA,
+    'toggle-tiled-left': MUTTER_SCHEMA,
+    'toggle-tiled-right': MUTTER_SCHEMA,
+    'maximize': WM_SCHEMA,
+    'unmaximize': WM_SCHEMA,
 };
 const SHORTCUTS = ['saved-scenes-shortcut', 'launcher-today-shortcut', 'launcher-settings-shortcut'];
+const TILE_SHORTCUTS = {
+    'tile-left-shortcut': 'left',
+    'tile-right-shortcut': 'right',
+    'tile-up-shortcut': 'up',
+    'tile-down-shortcut': 'down',
+};
 
 // '<Shift><Super>space' and '<Super><Shift>space' are the same accelerator.
 function normalize(accel) {
@@ -50,6 +62,7 @@ export default class JoaoExtension extends Extension {
         this._gnomeSettings = {
             [WM_SCHEMA]: new Gio.Settings({schema_id: WM_SCHEMA}),
             [SHELL_SCHEMA]: new Gio.Settings({schema_id: SHELL_SCHEMA}),
+            [MUTTER_SCHEMA]: new Gio.Settings({schema_id: MUTTER_SCHEMA}),
         };
         this._keepAwake = new KeepAwake(this._settings);
         this._privacyMonitor = new PrivacyMonitor();
@@ -62,6 +75,7 @@ export default class JoaoExtension extends Extension {
         this._privacy = new CornerIndicator(this._settings, this._topBar, this._view);
         this._notifications = new TrayBridge(this._settings, this._view);
         this._privacy.keepBelow(this._notifications.island);
+        this._tiling = new Tiling(this._settings);
 
         // Mutter grabs a key again only after it hears about the change in GNOME's list;
         // a binding added before that stays dead, so it is added again then.
@@ -72,7 +86,7 @@ export default class JoaoExtension extends Extension {
         this._bind();
         this._settingsIds = [
             this._settings.connect('changed::replace-super', () => this._syncSuper()),
-            ...SHORTCUTS.map(key => this._settings.connect(`changed::${key}`, () => {
+            ...[...SHORTCUTS, ...Object.keys(TILE_SHORTCUTS), 'tiling-activo'].map(key => this._settings.connect(`changed::${key}`, () => {
                 this._giveBackKeys();
                 this._takeKeys();
                 this._bind();
@@ -106,6 +120,8 @@ export default class JoaoExtension extends Extension {
             GLib.source_remove(this._bindId);
         this._bindId = 0;
         this._unbind();
+        this._tiling.destroy();
+        this._tiling = null;
         this._notifications.destroy();
         this._notifications = null;
         this._privacy.destroy();
@@ -169,6 +185,17 @@ export default class JoaoExtension extends Extension {
             Main.wm.addKeybinding(key, this._settings, Meta.KeyBindingFlags.NONE,
                 Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW | Shell.ActionMode.POPUP, actions[key]);
         }
+        // Only on the desktop: the launcher uses the arrows itself.
+        const tileKeys = this._tileKeys().filter(key => this._settings.get_strv(key).length);
+        for (const key of tileKeys) {
+            Main.wm.addKeybinding(key, this._settings, Meta.KeyBindingFlags.NONE, Shell.ActionMode.NORMAL,
+                () => this._tiling?.key(TILE_SHORTCUTS[key]));
+        }
+        this._bound.push(...tileKeys);
+    }
+
+    _tileKeys() {
+        return this._settings.get_boolean('tiling-activo') ? Object.keys(TILE_SHORTCUTS) : [];
     }
 
     _unbind() {
@@ -178,7 +205,7 @@ export default class JoaoExtension extends Extension {
 
     // Takes João's accelerators off GNOME's lists and remembers exactly what it took.
     _takeKeys() {
-        const mine = SHORTCUTS.flatMap(key => this._settings.get_strv(key)).map(normalize);
+        const mine = [...SHORTCUTS, ...this._tileKeys()].flatMap(key => this._settings.get_strv(key)).map(normalize);
         const taken = {};
         for (const [key, schema] of Object.entries(GNOME_KEYS)) {
             const settings = this._gnomeSettings[schema];

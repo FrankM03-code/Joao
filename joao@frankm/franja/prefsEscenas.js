@@ -80,7 +80,7 @@ export class EscenasPage {
         const stage = new Adw.PreferencesGroup({title: 'Escena activa'});
         page.add(stage);
         const arrange = new Adw.SwitchRow({title: 'Ordenar ventanas lado a lado',
-            subtitle: 'Al juntar ventanas en una escena se reparten el ancho por igual; al quedar sola, cada una vuelve a su tamaño'});
+            subtitle: 'Al juntar ventanas en una escena se reparten el ancho por igual; al quedar sola, cada una vuelve a su tamaño. Si colocaste alguna a mano en una mitad o un cuarto, la escena no se reparte'});
         settings.bind('ordenar-ventanas', arrange, 'active', Gio.SettingsBindFlags.DEFAULT);
         stage.add(arrange);
 

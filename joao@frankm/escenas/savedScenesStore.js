@@ -247,7 +247,7 @@ export class SavedScenesStore {
         let name = 'Nueva escena';
         for (let n = 2; this.byName(name); n++)
             name = `Nueva escena ${n}`;
-        return this.saveScene({name, layout: 'main-side', windows: [newWindow(app, 0)]});
+        return this.saveScene({name, layout: 'auto', windows: [newWindow(app, 0)]});
     }
 
     // Goes last. In a computed layout the existing main window stays the main one; with

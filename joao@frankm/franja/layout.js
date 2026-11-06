@@ -6,6 +6,8 @@ import Meta from 'gi://Meta';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+import {tiledRecord} from '../ventanas/tiledWindows.js';
+
 export const THUMB_WIDTH = 154;      // the front card
 export const THUMB_HEIGHT = 89;
 export const FAN_X = 16;             // each layer behind: inwards…
@@ -55,7 +57,7 @@ function unmaximize(win) {
 }
 
 // The windows of the scene on stage side by side, all the same width, with
-// equal margins (main window first). Only with two or more visible windows.
+// equal margins (main window first). Only with two or more visible windows, none tiled by hand.
 // @saved keeps each window's place from before the first arrangement, so it
 // can go back there when it is alone again (restorePlace).
 export function arrange(scene, main, settings, saved) {
@@ -64,7 +66,8 @@ export function arrange(scene, main, settings, saved) {
     // (allows_resize() is false for a maximized window: not a filter here.)
     const windows = scene.windows.filter(w => !w.minimized && !w.get_transient_for() &&
         w.get_window_type() === Meta.WindowType.NORMAL);
-    if (windows.length < 2)
+    // What the user tiled by hand stays where they put it.
+    if (windows.length < 2 || windows.some(tiledRecord))
         return;
     const area = freeArea(settings);
     if (!area)

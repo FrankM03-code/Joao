@@ -3,8 +3,9 @@
 // Where each window of a saved scene goes. The thumbnails and the restorer both use this,
 // so what the card draws is what you get. No GNOME imports: plain geometry.
 export const LAYOUTS = [
-    {id: 'free', label: 'Tal como está', summary: 'tal como está'},
-    {id: 'main-side', label: 'Principal + lateral', summary: 'principal + lateral'},
+    {id: 'free', label: 'Tal cual', summary: 'tal como está'},
+    {id: 'auto', label: 'Automático', summary: 'automático'},
+    {id: 'main-side', label: 'Principal', summary: 'principal + lateral'},
     {id: 'side-by-side', label: 'Lado a lado', summary: 'lado a lado'},
     {id: 'grid', label: 'Cuadrícula', summary: 'cuadrícula'},
 ];
@@ -29,6 +30,29 @@ export function layoutRects(layout, windows, area, gap = GAP) {
         width: Math.max(1, Math.round(width)), height: Math.max(1, Math.round(height)),
     });
 
+    if (layout === 'auto' && n === 3) {
+        const colW = (innerW - gap) / 2;
+        const rowH = (innerH - gap) / 2;
+        return [
+            box(left, top, colW, innerH),
+            box(left + colW + gap, top, colW, rowH),
+            box(left + colW + gap, top + rowH + gap, colW, rowH),
+        ];
+    }
+    // All the same size: as many columns as it takes to stay near square. A last row that is
+    // not full has its last window stretch to the end of the row.
+    if (layout === 'auto') {
+        const cols = Math.ceil(Math.sqrt(n));
+        const rows = Math.ceil(n / cols);
+        const colW = (innerW - gap * (cols - 1)) / cols;
+        const rowH = (innerH - gap * (rows - 1)) / rows;
+        return windows.map((w, i) => {
+            const col = i % cols;
+            const span = i === n - 1 ? cols - col : 1;
+            return box(left + col * (colW + gap), top + Math.floor(i / cols) * (rowH + gap),
+                span * colW + (span - 1) * gap, rowH);
+        });
+    }
     if (layout === 'main-side' && n > 1) {
         const mainW = (innerW - gap) * MAIN_SHARE;
         const sideW = innerW - gap - mainW;

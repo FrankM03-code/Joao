@@ -10,6 +10,8 @@ João reúne en una sola extensión las escenas de ventanas y un lanzador a pant
 - **Escenas de ventanas**: la escena activa en el centro y las demás en una franja lateral, con su vista previa. Una app minimizada se cierra desde su miniatura.
 - **Lanzador a pantalla completa**: se abre con la tecla Super, con Super + Mayús + Espacio o con la burbuja de la franja. Reúne escenas guardadas, apps, búsqueda y un panel del sistema.
 - **Escenas guardadas**: guarda tus ventanas tal como están o arma una escena arrastrando apps, y ábrela de una vez.
+- **Distribución automática**: las escenas nuevas reparten sus ventanas solas según cuántas haya (mitades, 2×2, 3×2).
+- **Organizar ventanas**: arrastra una ventana a un borde o una esquina para colocarla en mitades o cuartos, con vista previa, o usa Super + flechas.
 - **Panel del sistema**: ajustes rápidos, volumen, brillo, perfil de energía, Modo activo, la semana, notificaciones y energía.
 - **Notificaciones en la burbuja**: la burbuja salta, muestra el icono de la app y una línea de texto, y lleva el contador de no leídas. Al pasar el ratón sale la lista de las últimas. Si la franja está oculta, la burbuja aparece sola para avisar: nada sale arriba.
 - **Volumen con la rueda**: la rueda del ratón sobre la franja o la burbuja cambia el volumen, y el control aparece un momento dentro de «Nueva escena».
@@ -24,7 +26,7 @@ GNOME Shell 48.
 Con el paquete `.zip`:
 
 ```sh
-gnome-extensions install --force Joao-4.2.shell-extension.zip
+gnome-extensions install --force Joao-4.3.shell-extension.zip
 ```
 
 Desde este repositorio:

@@ -95,6 +95,7 @@ class JoaoCornerIndicator extends St.BoxLayout {
         this._signals.connect(Main.layoutManager, 'monitors-changed', () => this._place());
         this._signals.connect(Main.sessionMode, 'updated', () => this._sync());
         this._signals.connect(settings, 'changed::hide-top-bar', () => this._sync());
+        this._signals.connect(settings, 'changed::privacy-dots', () => this._sync());
         this._signals.connect(settings, 'changed::privacy-show-when-panel', () => this._sync());
         this._signals.connect(settings, 'changed::privacy-indicator-corner', () => this._place());
         // The page has its own pill.
@@ -137,7 +138,7 @@ class JoaoCornerIndicator extends St.BoxLayout {
     }
 
     get _shouldShow() {
-        return this._canList && !this._bubble &&
+        return this._canList && !this._bubble && this._settings.get_boolean('privacy-dots') &&
             (this._topBar.hidden || this._settings.get_boolean('privacy-show-when-panel'));
     }
 

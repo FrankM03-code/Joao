@@ -151,6 +151,10 @@
       <default>[]</default>
       <summary>Apps de una escena guardada que esperan en la franja, aún sin abrir</summary>
     </key>
+    <key name="privacy-dots" type="b">
+      <default>false</default>
+      <summary>Mostrar arriba los puntos de micrófono, cámara y pantalla</summary>
+    </key>
     <key name="privacy-show-when-panel" type="b">
       <default>false</default>
       <summary>Mostrar los puntos de privacidad aunque la barra de GNOME esté visible</summary>
@@ -221,6 +225,30 @@
     <key name="bubble-notify-list" type="b">
       <default>true</default>
       <summary>Mostrar la lista al pasar el ratón por la burbuja</summary>
+    </key>
+    <key name="tiling-activo" type="b">
+      <default>true</default>
+      <summary>Colocar ventanas en mitades y cuartos</summary>
+    </key>
+    <key name="tiling-edge-taken" type="b">
+      <default>false</default>
+      <summary>João apagó el tiling de GNOME y debe devolverlo (uso interno)</summary>
+    </key>
+    <key name="tile-left-shortcut" type="as">
+      <default><![CDATA[['<Super>Left']]]></default>
+      <summary>Llevar la ventana a la izquierda</summary>
+    </key>
+    <key name="tile-right-shortcut" type="as">
+      <default><![CDATA[['<Super>Right']]]></default>
+      <summary>Llevar la ventana a la derecha</summary>
+    </key>
+    <key name="tile-up-shortcut" type="as">
+      <default><![CDATA[['<Super>Up']]]></default>
+      <summary>Llevar la ventana arriba o maximizarla</summary>
+    </key>
+    <key name="tile-down-shortcut" type="as">
+      <default><![CDATA[['<Super>Down']]]></default>
+      <summary>Llevar la ventana abajo o devolverle el tamaño</summary>
     </key>
   </schema>
 </schemalist>

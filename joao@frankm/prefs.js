@@ -52,8 +52,18 @@ export default class JoaoPreferences extends ExtensionPreferences {
         settings.bind('restore-timeout', timeout, 'value', Gio.SettingsBindFlags.DEFAULT);
         restore.add(timeout);
 
+        const tiling = new Adw.PreferencesGroup({title: 'Organizar ventanas'});
+        page.add(tiling);
+        tiling.add(this._switchRow(settings, 'tiling-activo', 'Colocar ventanas en mitades y cuartos',
+            'Arrastra una ventana a un borde o una esquina, o usa los atajos'));
+        tiling.add(this._shortcutRow(settings, 'tile-left-shortcut', 'Ir a la izquierda'));
+        tiling.add(this._shortcutRow(settings, 'tile-right-shortcut', 'Ir a la derecha'));
+        tiling.add(this._shortcutRow(settings, 'tile-up-shortcut', 'Ir arriba o maximizar'));
+        tiling.add(this._shortcutRow(settings, 'tile-down-shortcut', 'Ir abajo o devolver el tamaño'));
+
         const privacy = new Adw.PreferencesGroup({title: 'Micrófono, cámara y pantalla'});
         page.add(privacy);
+        privacy.add(this._switchRow(settings, 'privacy-dots', 'Mostrar los puntos arriba', 'Naranja: micrófono. Verde: cámara. Rojo: pantalla'));
         privacy.add(this._switchRow(settings, 'privacy-show-when-panel', 'Mostrar los puntos con la barra visible',
             'La barra de GNOME ya tiene sus propios avisos'));
         privacy.add(this._switchRow(settings, 'privacy-badges', 'Marcar en la franja la escena que los usa', ''));

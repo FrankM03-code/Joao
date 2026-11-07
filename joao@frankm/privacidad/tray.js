@@ -68,7 +68,7 @@ class JoaoUseRow extends St.Button {
         box.add_child(new St.Widget({style_class: `joao-use-bar ${device}`, y_align: Clutter.ActorAlign.CENTER}));
         this._iconBin = new St.Bin({style_class: 'joao-use-app', y_align: Clutter.ActorAlign.CENTER});
         box.add_child(this._iconBin);
-        const words = new St.BoxLayout({vertical: true, x_expand: true, y_align: Clutter.ActorAlign.CENTER});
+        const words = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, y_align: Clutter.ActorAlign.CENTER});
         this._title = new St.Label({style_class: 'joao-use-title'});
         this._sub = new St.Label({style_class: 'joao-use-sub'});
         for (const label of [this._title, this._sub])
@@ -120,7 +120,7 @@ class JoaoUseRow extends St.Button {
 export const CompactTray = GObject.registerClass(
 class JoaoCompactTray extends St.BoxLayout {
     _init() {
-        super._init({style_class: 'joao-use-card', vertical: true, reactive: true, track_hover: true,
+        super._init({style_class: 'joao-use-card', orientation: Clutter.Orientation.VERTICAL, reactive: true, track_hover: true,
             visible: false, opacity: 0});
         this.add_child(new St.Label({style_class: 'joao-use-heading', text: 'En uso ahora'}));
         this._rows = new Map();

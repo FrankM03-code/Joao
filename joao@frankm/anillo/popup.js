@@ -10,6 +10,8 @@ import St from 'gi://St';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+import {grabHoldsKeyboard} from '../sistema/compat.js';
+
 export const scaleFactor = () => St.ThemeContext.get_for_stage(global.stage).scale_factor;
 export const animations = () => St.Settings.get().enable_animations;
 
@@ -21,15 +23,19 @@ export const Layer = GObject.registerClass({
         Main.uiGroup.add_child(this);
         this._grab = Main.pushModal(this, {actionMode: Shell.ActionMode.POPUP});
         // Another grab (a menu, a dialog) is holding the keyboard: nothing opens.
-        this.failed = !(this._grab.get_seat_state() & Clutter.GrabState.KEYBOARD);
+        this.failed = !grabHoldsKeyboard(this._grab);
+        // Only a press outside is taken: inside, the buttons must get it (since GNOME 49 they
+        // recognize their clicks with gestures, which a stopped press cancels).
         this.connect('button-press-event', (actor, event) => {
-            if (this._outside(event))
-                this.emit('outside');
+            if (!this._outside(event))
+                return Clutter.EVENT_PROPAGATE;
+            this.emit('outside');
             return Clutter.EVENT_STOP;
         });
         this.connect('touch-event', (actor, event) => {
-            if (event.type() === Clutter.EventType.TOUCH_BEGIN && this._outside(event))
-                this.emit('outside');
+            if (event.type() !== Clutter.EventType.TOUCH_BEGIN || !this._outside(event))
+                return Clutter.EVENT_PROPAGATE;
+            this.emit('outside');
             return Clutter.EVENT_STOP;
         });
         this.connect('key-press-event', (actor, event) => {

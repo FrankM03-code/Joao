@@ -18,6 +18,9 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import {launchSettings} from './common.js';
 import {notify} from './notice.js';
 
+// What went wrong with the power and capture actions, in the journal (one place for all of them).
+const warn = message => console.warn(`João: ${message}`);
+
 const MODE_SCREENSHOT = 0;
 const MODE_SCREENCAST = 1;
 const LOGOUT_ASK = 0;
@@ -221,7 +224,7 @@ class JoaoPowerBar extends St.Widget {
                 button.visible = answer === 'yes' || answer === 'challenge';
             } catch (e) {
                 if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
-                    console.warn(`João: CanHibernate: ${e.message}`);
+                    warn(`CanHibernate: ${e.message}`);
             }
         });
     }
@@ -319,12 +322,12 @@ class JoaoPowerBar extends St.Widget {
             if (mode === MODE_SCREENCAST && !ui.visible)
                 return ui.open(MODE_SCREENSHOT);
             return null;
-        }).catch(e => console.warn(`João: captura: ${e.message}`));
+        }).catch(e => warn(`captura: ${e.message}`));
     }
 
     _toggleRecording() {
         if (Main.screenshotUI.screencast_in_progress)
-            Main.screenshotUI.stopScreencast().catch(e => console.warn(`João: grabación: ${e.message}`));
+            Main.screenshotUI.stopScreencast().catch(e => warn(`grabación: ${e.message}`));
         else
             this._openScreenshot(MODE_SCREENCAST);
     }
@@ -415,7 +418,7 @@ class JoaoPowerBar extends St.Widget {
                 bus.call_finish(res);
             } catch (e) {
                 restore();
-                console.warn(`João: ${action}: ${e.message}`);
+                warn(`${action}: ${e.message}`);
                 notify(action === 'poweroff' ? 'No se pudo apagar' : 'No se pudo reiniciar', 'Tus ventanas siguen abiertas.');
             }
         });
@@ -426,7 +429,7 @@ class JoaoPowerBar extends St.Widget {
             try {
                 bus.call_finish(res);
             } catch (e) {
-                console.warn(`João: Hibernate: ${e.message}`);
+                warn(`Hibernate: ${e.message}`);
                 notify('No se pudo hibernar', 'El equipo sigue encendido y no se perdió nada.');
             }
         });
@@ -437,7 +440,7 @@ class JoaoPowerBar extends St.Widget {
             try {
                 bus.call_finish(res);
             } catch (e) {
-                console.warn(`João: Logout: ${e.message}`);
+                warn(`Logout: ${e.message}`);
                 notify('No se pudo cerrar la sesión', 'Tus ventanas siguen abiertas.');
             }
         });

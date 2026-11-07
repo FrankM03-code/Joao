@@ -74,12 +74,12 @@ class JoaoNoteWindow extends Popup {
                 return Clutter.EVENT_PROPAGATE;
             if (event.get_state() & Clutter.ModifierType.SHIFT_MASK) {
                 // A new line; inside a checklist it starts with a box.
+                // Done here: since GNOME 51 the text no longer breaks the line by itself.
                 const line = this._currentLine();
-                if (line.startsWith(CHECK_OPEN) || line.startsWith(CHECK_DONE)) {
-                    text.insert_text(`\n${CHECK_OPEN}`, text.get_cursor_position());
-                    return Clutter.EVENT_STOP;
-                }
-                return Clutter.EVENT_PROPAGATE;
+                const box = line.startsWith(CHECK_OPEN) || line.startsWith(CHECK_DONE) ? CHECK_OPEN : '';
+                text.delete_selection();
+                text.insert_text(`\n${box}`, text.get_cursor_position());
+                return Clutter.EVENT_STOP;
             }
             this.pin();
             return Clutter.EVENT_STOP;

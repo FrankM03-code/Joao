@@ -22,14 +22,14 @@ João reúne en una sola extensión las escenas de ventanas y un lanzador a pant
 
 ## Requisitos
 
-GNOME Shell 48.
+GNOME Shell 48, 49, 50 o 51.
 
 ## Instalación
 
-Con el paquete `.zip`:
+Con el paquete `.zip` (descárgalo de [Releases](https://github.com/FrankM03-code/Joao/releases/latest)):
 
 ```sh
-gnome-extensions install --force Joao-4.5.shell-extension.zip
+gnome-extensions install --force Joao-4.6.shell-extension.zip
 ```
 
 Desde este repositorio:

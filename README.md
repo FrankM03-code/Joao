@@ -45,7 +45,7 @@ gnome-extensions enable joao@frankm
 
 João cambia cómo funciona el escritorio: oculta la barra superior, usa la tecla Super para su lanzador y toma algunos atajos de GNOME, que devuelve al apagarla. La barra, los atajos y las notificaciones se ajustan en sus preferencias.
 
-Si Firefox solo tiene permiso de notificar para WhatsApp Web, puedes activar en Preferencias → Isla de notificaciones la opción de mostrar esos avisos como WhatsApp. Firefox no dice de qué página viene cada aviso, así que todos saldrán con ese nombre.
+Si en Firefox solo una página de chat tiene permiso de notificar, puedes activar en Preferencias → Isla de notificaciones la opción de mostrar esos avisos con el nombre de ese chat. Firefox no dice de qué página viene cada aviso, así que todos saldrán con ese nombre.
 
 ## Licencia
 

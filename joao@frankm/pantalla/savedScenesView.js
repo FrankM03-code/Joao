@@ -13,6 +13,7 @@ import {AppDrag} from './appDrag.js';
 import {searchApps, searchScenes} from './appSearch.js';
 import {Backdrop} from './backdrop.js';
 import {appsBubble, captureWindows, escenasStrip, pointerMonitor} from '../escenas/escenasLink.js';
+import {connectKeyPress} from '../escritorio/keyEvents.js';
 import {notificationStore} from '../notificaciones/notificationStore.js';
 import {LauncherHeader} from './header.js';
 import {layoutSummary} from '../escenas/layouts.js';
@@ -24,6 +25,7 @@ import {WaveReveal} from './waveReveal.js';
 import {searchSettings} from './settingsSearch.js';
 import {suggest} from '../escenas/suggestions.js';
 import {Tooltip} from '../sistema/common.js';
+import {grabHoldsKeyboard, MENU_NO_ANIMATION} from '../sistema/compat.js';
 import {SystemPanel} from '../sistema/systemPanel.js';
 
 // Layout of the screen, in pixels of a monitor at scale 1.
@@ -113,7 +115,7 @@ class JoaoSavedScenesView extends St.Widget {
         for (const prop of ['value', 'upper', 'page-size'])
             adjustment.connect(`notify::${prop}`, () => this._syncFade());
 
-        this._panel = new SystemPanel({tooltip: this._tooltip, close: () => this.close({toOrigin: false}), settings});
+        this._panel = new SystemPanel({tooltip: this._tooltip, close: () => this.close({toOrigin: false}), closeNow: () => this.close({animate: false}), settings});
         this._page.add_child(this._panel);
 
         // Found by the search box, on top of everything else.
@@ -206,7 +208,7 @@ class JoaoSavedScenesView extends St.Widget {
         this._content.add_child(this._noResults);
 
         this.connect('button-press-event', (a, event) => this._onPress(event));
-        this.connect('key-press-event', (a, event) => this._keys.onKeyPress(event));
+        connectKeyPress(this, event => this._keys.onKeyPress(event));
 
         // Below GNOME's dialog layer, so the save dialog shows over the page.
         const group = Main.layoutManager.uiGroup;
@@ -274,7 +276,7 @@ class JoaoSavedScenesView extends St.Widget {
         else
             this._animateIn();
         this._grab = Main.pushModal(this, {actionMode: Shell.ActionMode.POPUP});
-        if ((this._grab.get_seat_state() & Clutter.GrabState.KEYBOARD) === 0) {
+        if (!grabHoldsKeyboard(this._grab)) {
             // Something else holds the keyboard (another popup): do not open half-way.
             this.close({animate: false});
             return;
@@ -389,8 +391,7 @@ class JoaoSavedScenesView extends St.Widget {
             return;
         }
         this._cancelFirstFrame();
-        this._editor.menu?.close(false);
-        this._panel.closeMenu();
+        this._editor.menu?.close(MENU_NO_ANIMATION);
         this._tooltip.hide();
         if (this._grab) {
             Main.popModal(this._grab);
@@ -803,7 +804,7 @@ class JoaoSavedScenesView extends St.Widget {
     }
 
     destroy() {
-        this._drag.end();
+        this._drag.destroy();
         this.close({animate: false});
         this._cancelFirstFrame();
         this._editor.destroy();

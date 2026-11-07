@@ -2,29 +2,28 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // What is in use, when the strip's bubble cannot say it (its border lights up, appsBubble.js): a
 // dot per device, at the top of the screen and over everything, fullscreen too, for when the strip is out of
-// sight or off. Hovering either one opens the list of apps.
+// sight or off. Hovering either one opens the tray of chips (tray.js).
 import Atk from 'gi://Atk';
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
-import Pango from 'gi://Pango';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+import {connectKeyPress} from '../escritorio/keyEvents.js';
 import {escenasStrip} from '../franja/escenasMode.js';
 import {Signals} from '../sistema/gnome.js';
 import {DEVICES, DEVICE_INFO, privacyMonitor} from './privacyMonitor.js';
-import {canCut, canGoTo, cut, cutIcon, cutLabel, goToApp} from './stopActions.js';
+import {canCut, canGoTo, cut, cutIcon, cutLabel, goToApp, isMuted} from './stopActions.js';
+import {CompactTray} from './tray.js';
 
 const MARGIN = 16;
 const DOT_ROOM = 8;       // padding around the dots (stylesheet), so they are easier to hit
-const LIST_GAP = 4;
-const LEAVE_MARGIN = 300;
-const LIST_TIME = 180;
-const LIST_SHIFT = 8;
+const TRAY_GAP = 6;
+const LEAVE_MARGIN = 150;
 const DOT_TIME = 200;
 const SHORTCUT = 'privacy-list-shortcut';
 
@@ -72,23 +71,16 @@ class JoaoCornerIndicator extends St.BoxLayout {
             this.add_child(dot);
         }
 
-        this._list = new St.BoxLayout({
-            style_class: 'joao-privacy-list',
-            orientation: Clutter.Orientation.VERTICAL,
-            reactive: true,
-            track_hover: true,
-            visible: false,
-        });
         Main.layoutManager.addTopChrome(this);
-        Main.layoutManager.addTopChrome(this._list);
+        this._tray = new CompactTray();
 
         this.connect('notify::hover', () => this._syncHover());
-        this._list.connect('notify::hover', () => this._syncHover());
-        this.connect('key-press-event', (a, event) => this._onKey(event));
-        this._list.connect('key-press-event', (a, event) => this._onKey(event));
+        this._tray.connect('notify::hover', () => this._syncHover());
+        connectKeyPress(this, event => this._onKey(event));
+        connectKeyPress(this._tray, event => this._onKey(event));
         // These arrive in the middle of a layout pass, which a move would disturb.
         this.connect('notify::width', () => this._placeLater());
-        this._list.connect('notify::height', () => this._placeLater());
+        this._tray.connect('notify::width', () => this._placeLater());
 
         this._signals = new Signals();
         this._signals.connect(this._monitor, 'changed', () => this._sync());
@@ -120,25 +112,55 @@ class JoaoCornerIndicator extends St.BoxLayout {
     }
 
     bubbleHover(on) {
+        if (on === this._bubbleHover)
+            return;
         this._bubbleHover = on;
         this._syncHover();
     }
 
-    get listHover() {
-        return this._list.visible && this._list.hover;
+    get trayHover() {
+        return this._tray.visible && this._tray.hover;
     }
 
+    // Where the chips start, for the list of notifications that goes above them.
+    get chipsTop() {
+        return this._bubble && this._tray.visible && this._tray.chips.length > 0 ? this._tray.y : null;
+    }
+
+    // The bubble moved.
     placeLater() {
-        this._placeLater();
+        if (this._tray.visible)
+            this._placeLater();
+    }
+
+    // The notifications changed, or whether the bubble tells them.
+    refreshTray() {
+        this._syncTray();
+    }
+
+    openFromKeyboard() {
+        this._openFromKeyboard();
     }
 
     // The page has its own pill, and takes every click.
-    get _canList() {
-        return this._monitor.active.length > 0 && !this._view.visible && !Main.sessionMode.isLocked;
+    get _free() {
+        return !this._view.visible && !Main.sessionMode.isLocked;
+    }
+
+    get _emptyPill() {
+        return !!this._bubble && !!escenasStrip()?.appsBubble?.wantsEmptyPill;
+    }
+
+    get _canTray() {
+        return this._free && (this._monitor.active.length > 0 || this._emptyPill);
+    }
+
+    get _wantsTray() {
+        return this.hover || this._tray.hover || this._bubbleHover;
     }
 
     get _shouldShow() {
-        return this._canList && !this._bubble && this._settings.get_boolean('privacy-dots') &&
+        return this._free && this._monitor.active.length > 0 && !this._bubble && this._settings.get_boolean('privacy-dots') &&
             (this._topBar.hidden || this._settings.get_boolean('privacy-show-when-panel'));
     }
 
@@ -174,12 +196,16 @@ class JoaoCornerIndicator extends St.BoxLayout {
             this.ease({opacity: 0, duration: DOT_TIME, mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                 onComplete: () => this.hide()});
         }
-        if (this._list.visible) {
-            if (this._canList)
-                this._fillList();
-            else
-                this._closeList(false);
-        }
+        this._syncTray();
+    }
+
+    _syncTray() {
+        if (!this._canTray)
+            this._closeTray(false);
+        else if (this._tray.visible)
+            this._fillTray();
+        else if (this._wantsTray)
+            this._openTray();
     }
 
     _setDot(dot, on) {
@@ -217,7 +243,7 @@ class JoaoCornerIndicator extends St.BoxLayout {
         this.set_position(
             Math.round(alongEdge(corner, monitor, width, margin)),
             Math.round(corner.startsWith('bottom') ? monitor.y + monitor.height - height - margin : monitor.y + margin));
-        this._placeList();
+        this._placeTray();
     }
 
     _placeLater() {
@@ -230,162 +256,148 @@ class JoaoCornerIndicator extends St.BoxLayout {
         });
     }
 
-    _placeList() {
+    _placeTray() {
         const monitor = Main.layoutManager.primaryMonitor;
-        if (!monitor || !this._list.visible)
+        if (!monitor || !this._tray.visible)
             return;
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        const corner = this._settings.get_string('privacy-indicator-corner');
-        const [, width] = this._list.get_preferred_width(-1);
-        const [, height] = this._list.get_preferred_height(width);
+        const [, width] = this._tray.get_preferred_width(-1);
+        const [, height] = this._tray.get_preferred_height(width);
         const margin = MARGIN * scale;
-        const gap = LIST_GAP * scale;
+        const gap = TRAY_GAP * scale;
         if (this._bubble) {
-            // Beside the bubble, towards the middle of the screen, and never below the screen.
-            const [x, y] = this._bubble.get_transformed_position();
-            const [w, h] = this._bubble.get_transformed_size();
-            const onLeft = x + w / 2 < monitor.x + monitor.width / 2;
-            // Above the list of notifications, when it is there too.
-            const notifications = escenasStrip()?.appsBubble?.notifyList;
-            const under = notifications?.visible ? notifications.height + gap : 0;
-            this._list.set_position(
-                Math.round(onLeft ? x + w + gap : x - width - gap),
-                Math.round(Math.min(y + h - height, monitor.y + monitor.height - height - margin) - under));
-            return;
+            this._tray.set_position(...this._besideBubble(monitor, width, height, gap, margin));
+        } else {
+            const corner = this._settings.get_string('privacy-indicator-corner');
+            this._tray.set_position(
+                Math.round(alongEdge(corner, monitor, width, margin)),
+                Math.round(corner.startsWith('bottom') ? this.y - height - gap : this.y + this.height + gap));
         }
-        this._list.set_position(
-            Math.round(alongEdge(corner, monitor, width, margin)),
-            Math.round(corner.startsWith('bottom') ? this.y - height - gap : this.y + this.height + gap));
+        this._chipsMoved();
     }
 
-    // ---------- the list ----------
+    // Towards the middle of the screen and centered with the bubble, whatever its hover scale.
+    _besideBubble(monitor, width, height, gap, margin) {
+        const [x, y] = this._bubble.get_transformed_position();
+        const [w, h] = this._bubble.get_transformed_size();
+        const centerX = x + w / 2;
+        const centerY = y + h / 2;
+        const half = this._bubble.width / 2;
+        return [
+            Math.round(this._towardsRight ? centerX + half + gap : centerX - half - gap - width),
+            Math.round(Math.min(centerY - height / 2, monitor.y + monitor.height - height - margin)),
+        ];
+    }
+
+    get _towardsRight() {
+        if (!this._bubble)
+            return true;
+        const monitor = Main.layoutManager.primaryMonitor;
+        const [x] = this._bubble.get_transformed_position();
+        const [w] = this._bubble.get_transformed_size();
+        return !monitor || x + w / 2 < monitor.x + monitor.width / 2;
+    }
+
+    _chipsMoved() {
+        const top = this.chipsTop;
+        if (top === this._lastChipsTop)
+            return;
+        this._lastChipsTop = top;
+        escenasStrip()?.appsBubble?.notifyList?.chipsMoved();
+    }
+
+    // ---------- the tray ----------
 
     _syncHover() {
         escenasStrip()?.appsBubble?.otherListHover();
         if (this._leaveId)
             GLib.source_remove(this._leaveId);
         this._leaveId = 0;
-        if (this.hover || this._list.hover || this._bubbleHover) {
-            this._openList();
+        if (this._wantsTray) {
+            this._openTray();
             return;
         }
-        if (this._list.visible && !this._byKeyboard) {
+        if (this._tray.visible && !this._byKeyboard) {
             this._leaveId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, LEAVE_MARGIN, () => {
                 this._leaveId = 0;
-                this._closeList(true);
+                this._closeTray(true);
                 return GLib.SOURCE_REMOVE;
             });
         }
     }
 
     _openFromKeyboard() {
-        if (!this._canList)
+        if (!this._canTray)
             return;
         this._byKeyboard = true;
-        this._openList();
+        this._openTray();
         this._returnFocus = global.stage.get_key_focus();
-        if (!this._list.navigate_focus(null, St.DirectionType.TAB_FORWARD, false))
-            this._list.grab_key_focus();
+        if (!this._tray.navigate_focus(null, St.DirectionType.TAB_FORWARD, false))
+            this._tray.grab_key_focus();
     }
 
     _onKey(event) {
         if (event.get_key_symbol() !== Clutter.KEY_Escape)
             return Clutter.EVENT_PROPAGATE;
-        this._closeList(true);
+        this._closeTray(true);
         return Clutter.EVENT_STOP;
     }
 
-    _openList() {
-        if (!this._canList)
+    _openTray() {
+        if (!this._canTray) {
+            this._closeTray(false);
             return;
-        const wasOpen = this._list.visible;
-        this._fillList();
-        if (wasOpen && !this._closing)
+        }
+        this._fillTray();
+        if (this._tray.isShowing)
             return;
-        this._closing = false;
-        this._list.remove_all_transitions();
-        const fromBelow = this._settings.get_string('privacy-indicator-corner').startsWith('bottom');
-        if (!wasOpen)
-            this._list.set({opacity: 0, translation_y: fromBelow ? LIST_SHIFT : -LIST_SHIFT, visible: true});
-        Main.layoutManager.uiGroup.set_child_above_sibling(this._list, null);
-        this._placeList();
-        this._list.ease({opacity: 255, translation_y: 0, duration: LIST_TIME, mode: Clutter.AnimationMode.EASE_OUT_QUAD});
+        this._tray.reveal(this._towardsRight ? 1 : -1);
+        Main.layoutManager.uiGroup.set_child_above_sibling(this._tray, null);
+        this._placeTray();
     }
 
-    _closeList(animate) {
+    _closeTray(animate) {
         this._byKeyboard = false;
         if (this._returnFocus !== undefined) {
-            if (this._list.contains(global.stage.get_key_focus()))
+            if (this._tray.contains(global.stage.get_key_focus()))
                 global.stage.set_key_focus(this._returnFocus);
             this._returnFocus = undefined;
         }
-        if (!this._list.visible)
-            return;
-        this._list.remove_all_transitions();
-        if (!animate) {
-            this._closing = false;
-            this._list.hide();
-            return;
-        }
-        this._closing = true;
-        this._list.ease({opacity: 0, translation_y: -LIST_SHIFT, duration: LIST_TIME, mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            onComplete: () => {
-                this._closing = false;
-                this._list.hide();
-            }});
+        this._tray.conceal(animate);
+        if (!animate)
+            this._chipsMoved();
     }
 
-    _fillList() {
-        this._list.destroy_all_children();
-        for (const device of this._monitor.active) {
-            for (const entry of this._monitor.state[device])
-                this._list.add_child(this._row(device, entry));
-        }
+    _fillTray() {
+        this._tray.update(this._uses(), this._emptyPill);
+        this._placeLater();
     }
 
-    _row(device, entry) {
+    _uses() {
+        return this._monitor.active.flatMap(device =>
+            this._monitor.state[device].map(entry => this._use(device, entry)));
+    }
+
+    // A click does what can be done; a camera cannot be cut, so there it goes to the app, as the
+    // secondary button always does.
+    _use(device, entry) {
         const info = DEVICE_INFO[device];
-        const row = new St.BoxLayout({style_class: `joao-privacy-row ${device}`, x_expand: true});
-        row.add_child(new St.Bin({
-            style_class: `joao-privacy-row-icon ${device}`,
-            y_align: Clutter.ActorAlign.CENTER,
-            child: new St.Icon({icon_name: info.icon, icon_size: 15}),
-        }));
-
-        const words = new St.BoxLayout({orientation: Clutter.Orientation.VERTICAL, x_expand: true, y_align: Clutter.ActorAlign.CENTER});
-        words.add_child(new St.Label({style_class: 'joao-privacy-row-device', text: info.name}));
-        const name = new St.Label({style_class: 'joao-privacy-row-app', text: entry.name});
-        name.clutter_text.ellipsize = Pango.EllipsizeMode.END;
-        if (canGoTo(entry)) {
-            const go = new St.Button({
-                style_class: 'joao-privacy-row-go',
-                can_focus: true,
-                x_align: Clutter.ActorAlign.START,
-                child: name,
-                accessible_name: `Ir a ${entry.name}`,
-            });
-            go.connect('clicked', () => {
-                this._closeList(false);
-                goToApp(entry);
-            });
-            words.add_child(go);
-        } else {
-            words.add_child(name);
-        }
-        row.add_child(words);
-
-        if (canCut(device, entry)) {
-            const stop = new St.Button({
-                style_class: 'joao-privacy-row-stop',
-                can_focus: true,
-                y_align: Clutter.ActorAlign.CENTER,
-                accessible_name: cutLabel(device, entry),
-                child: new St.Icon({icon_name: cutIcon(device, entry), icon_size: 15}),
-            });
-            stop.connect('clicked', () => cut(device, entry));
-            row.add_child(stop);
-        }
-        return row;
+        const go = canGoTo(entry) ? () => {
+            this._closeTray(false);
+            goToApp(entry);
+        } : null;
+        const cuts = canCut(device, entry);
+        const label = cuts ? cutLabel(device, entry) : go && `Ir a ${entry.name}`;
+        return {
+            key: `${device}:${entry.appId ?? entry.name}`,
+            device,
+            app: entry.name,
+            icon: device === 'microphone' && isMuted(entry) ? 'microphone-disabled-symbolic' : info.icon,
+            actionIcon: cuts ? cutIcon(device, entry) : go && 'go-next-symbolic',
+            description: [`${info.name}: ${entry.name}`, label].filter(Boolean).join('. '),
+            onAction: cuts ? () => cut(device, entry) : go,
+            onSecondary: go,
+        };
     }
 
     destroy() {
@@ -401,8 +413,7 @@ class JoaoCornerIndicator extends St.BoxLayout {
         if (this._showing)
             global.compositor.enable_unredirect();
         this._showing = false;
-        Main.layoutManager.removeChrome(this._list);
-        this._list.destroy();
+        this._tray.destroy();
         Main.layoutManager.removeChrome(this);
         super.destroy();
     }

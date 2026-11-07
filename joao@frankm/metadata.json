@@ -1,14 +1,18 @@
 {
   "uuid": "joao@frankm",
   "name": "João",
-  "description": "Un solo escritorio para GNOME: escenas de ventanas al estilo de Stage Manager, con la escena activa en el centro y las demás en una franja lateral, y un lanzador a pantalla completa que sustituye a la barra superior, con escenas guardadas, apps, ajustes rápidos, semana, notificaciones y energía. Se abre con la tecla Super, con Super+Mayús+Espacio o con la burbuja de la franja.\n\nCreado y diseñado por Frank Molina.",
+  "description": "Un solo escritorio para GNOME: escenas de ventanas, con la escena activa en el centro y las demás en una franja lateral, y un lanzador a pantalla completa que sustituye a la barra superior, con escenas guardadas, apps, ajustes rápidos, semana, notificaciones y energía. Se abre con la tecla Super, con Super+Mayús+Espacio o con la burbuja de la franja.\n\nCreado y diseñado por Frank Molina.",
   "shell-version": [
-    "48"
+    "48",
+    "49",
+    "50",
+    "51"
   ],
   "session-modes": [
     "user",
     "unlock-dialog"
   ],
+  "url": "https://github.com/FrankM03-code/Joao",
   "settings-schema": "org.gnome.shell.extensions.joao",
-  "version-name": "4.3"
+  "version-name": "4.4"
 }

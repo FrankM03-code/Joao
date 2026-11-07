@@ -64,10 +64,9 @@ export class EscenasPage {
         side.connect('notify::selected', () => settings.set_string('lado', sides[side.selected]));
         strip.add(side);
 
-        const colors = ['oscuro', 'isla', 'claro'];
+        const colors = ['oscuro', 'claro'];
         const color = new Adw.ComboRow({title: 'Color de la franja',
-            subtitle: '«Como IslaDock» sigue la piel y el modo de IslaDock cuando está activa',
-            model: Gtk.StringList.new(['Oscuro transparente', 'Como IslaDock', 'Claro'])});
+            model: Gtk.StringList.new(['Oscuro transparente', 'Claro'])});
         color.selected = Math.max(0, colors.indexOf(settings.get_string('color-franja')));
         color.connect('notify::selected', () => settings.set_string('color-franja', colors[color.selected]));
         strip.add(color);

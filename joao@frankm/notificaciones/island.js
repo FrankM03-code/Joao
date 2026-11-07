@@ -18,6 +18,8 @@ import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import {pointerMonitor} from '../escenas/escenasLink.js';
+import {connectKeyPress} from '../escritorio/keyEvents.js';
+import {addVerticalDrag} from '../sistema/compat.js';
 import {RoundedCorners} from '../franja/sceneThumbnail.js';
 import {Signals} from '../sistema/gnome.js';
 import {DOT, IslandAnimator, TOP} from './islandAnimator.js';
@@ -96,7 +98,7 @@ export const Island = GObject.registerClass({
         this._addSwipe();
 
         this.connect('notify::hover', () => this._onHover());
-        this.connect('key-press-event', (a, event) => this._onKey(event));
+        connectKeyPress(this, event => this._onKey(event));
         this.connect('notify::x', () => this._syncCopy());
         this.connect('notify::y', () => this._syncCopy());
         this.connect('notify::width', () => this._syncShape());
@@ -113,21 +115,15 @@ export const Island = GObject.registerClass({
     }
 
     _addSwipe() {
-        const pan = new Clutter.PanAction({pan_axis: Clutter.PanAxis.Y_AXIS});
         let moved = 0;
-        pan.connect('gesture-begin', () => {
+        addVerticalDrag(this._pill, delta => {
+            moved += delta;
+            if (moved > -SWIPE_AWAY * scaleFactor())
+                return false;
             moved = 0;
+            this.emit('dismiss');
             return true;
         });
-        pan.connect('pan', action => {
-            moved += action.get_motion_delta(0)[2];
-            if (moved <= -SWIPE_AWAY * scaleFactor()) {
-                action.cancel();
-                this.emit('dismiss');
-            }
-            return false;
-        });
-        this._pill.add_action(pan);
     }
 
     // ---------- geometry ----------

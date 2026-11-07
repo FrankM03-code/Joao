@@ -143,7 +143,6 @@ class JoaoLauncherHeader extends St.Widget {
     _onDestroy() {
         this._cancelReady();
         this._signals.disconnectAll();
-        this._wallClock.run_dispose();
         this._wallClock = null;
     }
 });

@@ -1,29 +1,32 @@
 // SPDX-FileCopyrightText: 2026 Frank Molina
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Reads what `pw-dump` and `fuser` print. No GNOME Shell here, so the tests can run it alone.
-import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
+
+Gio._promisify(Gio.File.prototype, 'load_contents_async', 'load_contents_finish');
 
 const SYSTEM_PROCESSES = ['pipewire', 'wireplumber', 'gnome-shell'];
 
-function readText(path) {
+async function readText(path) {
     try {
-        const [ok, bytes] = GLib.file_get_contents(path);
-        return ok ? new TextDecoder().decode(bytes) : '';
+        const [bytes] = await Gio.File.new_for_path(path).load_contents_async(null);
+        return new TextDecoder().decode(bytes);
     } catch {
         return '';
     }
 }
 
-export function parentPid(pid) {
+export async function parentPid(pid) {
     // "pid (name with spaces and parens) state ppid …"
-    const stat = readText(`/proc/${pid}/stat`);
+    const stat = await readText(`/proc/${pid}/stat`);
     const fields = stat.slice(stat.lastIndexOf(')') + 2).split(' ');
     return Number(fields[1]) || 0;
 }
 
-export function parseFuser(output) {
-    return output.trim().split(/\s+/).filter(Boolean).map(Number)
-        .filter(pid => pid > 0 && !SYSTEM_PROCESSES.includes(readText(`/proc/${pid}/comm`).trim()));
+export async function parseFuser(output) {
+    const pids = output.trim().split(/\s+/).filter(Boolean).map(Number).filter(pid => pid > 0);
+    const names = await Promise.all(pids.map(pid => readText(`/proc/${pid}/comm`)));
+    return pids.filter((pid, i) => !SYSTEM_PROCESSES.includes(names[i].trim()));
 }
 
 // Who reads the camera and the shared screen, and the audio streams by the number PulseAudio

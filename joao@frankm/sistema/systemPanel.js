@@ -8,7 +8,7 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 
 import {NotificationsBlock} from './notifications.js';
-import {PowerButtons} from './powerButtons.js';
+import {PowerBar} from './powerBar.js';
 import {PowerProfile} from './powerProfile.js';
 import {SystemSliders} from './sliders.js';
 import {TodayBlock} from './today.js';
@@ -19,7 +19,7 @@ const ROW = 62;            // a notification row and its gap, in pixels of the s
 
 export const SystemPanel = GObject.registerClass(
 class JoaoSystemPanel extends St.BoxLayout {
-    _init({tooltip, close, settings}) {
+    _init({tooltip, close, closeNow, settings}) {
         super._init({style_class: 'escenas-full-panel', orientation: Clutter.Orientation.VERTICAL, reactive: true});
 
         this._blocks = new St.BoxLayout({style_class: 'escenas-full-panel-blocks', orientation: Clutter.Orientation.VERTICAL, x_expand: true});
@@ -38,7 +38,7 @@ class JoaoSystemPanel extends St.BoxLayout {
         this.profile = new PowerProfile(tooltip);
         this.today = new TodayBlock({tooltip, close});
         this.notifications = new NotificationsBlock({tooltip, close});
-        this.footer = new PowerButtons({tooltip, close});
+        this.footer = new PowerBar({tooltip, close, closeNow});
         this._blocks.add_child(this.sliders);
         this._blocks.add_child(this.toggles);
         this._blocks.add_child(this.profile);
@@ -142,10 +142,6 @@ class JoaoSystemPanel extends St.BoxLayout {
             adjustment.value += top;
         else if (bottom > adjustment.page_size)
             adjustment.value += bottom - adjustment.page_size;
-    }
-
-    closeMenu() {
-        this.footer.closeMenu();
     }
 
 });

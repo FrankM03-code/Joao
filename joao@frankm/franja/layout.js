@@ -6,6 +6,7 @@ import Meta from 'gi://Meta';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+import {isPartlyMaximized, maximize, unmaximize as leaveMaximized} from '../sistema/compat.js';
 import {tiledRecord} from '../ventanas/tiledWindows.js';
 
 export const THUMB_WIDTH = 154;      // the front card
@@ -50,10 +51,8 @@ function freeArea(settings) {
 function unmaximize(win) {
     if (win.is_fullscreen())
         win.unmake_fullscreen();
-    if (win.get_maximized?.())
-        win.unmaximize(Meta.MaximizeFlags.BOTH);
-    else if (win.is_maximized?.())
-        win.unmaximize();
+    if (isPartlyMaximized(win))
+        leaveMaximized(win);
 }
 
 // The windows of the scene on stage side by side, all the same width, with
@@ -80,7 +79,7 @@ export function arrange(scene, main, settings, saved) {
         if (!saved.has(win)) {
             const f = win.get_frame_rect();
             saved.set(win, {x: f.x, y: f.y, width: f.width, height: f.height,
-                maximized: !!(win.get_maximized?.() ?? win.is_maximized?.())});
+                maximized: isPartlyMaximized(win)});
         }
         unmaximize(win);
         win.move_resize_frame(true, area.x + GAP + i * (width + GAP), area.y + GAP, width, height);
@@ -95,5 +94,5 @@ export function restorePlace(win, saved) {
         return;
     win.move_resize_frame(true, place.x, place.y, place.width, place.height);
     if (place.maximized)
-        win.maximize(Meta.MaximizeFlags.BOTH);
+        maximize(win);
 }

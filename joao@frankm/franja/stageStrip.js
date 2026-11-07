@@ -4,10 +4,8 @@
 // (newSceneButton.js: it turns a window into a scene of its own: the focused
 // one on click, or a window moved or dragged onto it) and the thumbnails of the scenes not on stage. It hides itself when a
 // window of the stage covers it (maximized, fullscreen or just overlapping)
-// and comes back while the pointer touches that screen edge. Its colors follow
-// IslaDock's skin when IslaDock is on.
+// and comes back while the pointer touches that screen edge.
 import Clutter from 'gi://Clutter';
-import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import St from 'gi://St';
@@ -21,6 +19,7 @@ import {PILE_EXTRA_HEIGHT, SceneThumbnail, appOf, pileSize} from './sceneThumbna
 import {NewSceneButton} from './newSceneButton.js';
 import {AppsBubble, BUBBLE_INSET, BUBBLE_ROOM} from './appsBubble.js';
 import {AppShortcuts} from './appShortcuts.js';
+import {EdgeBarrier} from './edgeBarrier.js';
 import {StripVolume} from './stripVolume.js';
 
 const ANIMATION_TIME = 200;
@@ -28,7 +27,7 @@ const LEAVE_DELAY = 500;
 const DRAWER_TIME = 260;        // leaving and coming back around the launcher page
 const DRAWER_SHIFT = 14;
 // The wheel outside the piles moves the list when there are more scenes than
-// fit (Frank 2026-11-03: six apps, five shown, the wheel finds the sixth).
+// fit: with six apps and five shown, the wheel finds the sixth.
 const SCROLL_STEP = 1.0;        // smooth scrolling: accumulated delta per step
 const STEP_GAP = 120;           // ms: one wheel gesture moves one scene
 const SCROLL_RESET = 1500;      // pointer away this long: back to the most recent
@@ -38,8 +37,6 @@ const CHROME_HEIGHT = 26 + 16 + 2 * 10 + 2;   // "Nueva escena" + its gap + padd
 const LABEL_HEIGHT = 25;                      // name row under a fan
 const LIST_SPACING = 10;
 const CARD_SPACING = 20;
-const ISLA_UUID = 'isla-dock@frankm';
-const ISLA_SCHEMA = 'org.gnome.shell.extensions.isla-dock';
 // A box with a dashed rounded border (St draws only solid borders). The
 // border uses the box's text color from the stylesheet.
 function dashedBox(styleClass, text, params = {}) {
@@ -108,11 +105,13 @@ export class StageStrip {
         this.shortcuts = new AppShortcuts(settings);
         this.actor.add_child(this.shortcuts.actor);
 
-        Main.layoutManager.addChrome(this.actor, {affectsInputRegion: true});
+        Main.layoutManager.addChrome(this.actor);
 
         // A 1-px line at the screen edge that brings the strip back.
         this._edge = new St.Widget({reactive: true, width: 1, visible: false, name: 'escenasEdge'});
-        Main.layoutManager.addChrome(this._edge, {affectsInputRegion: true});
+        Main.layoutManager.addChrome(this._edge);
+        // With another monitor on that side the edge stops nothing: this holds the pointer there.
+        this._barrier = new EdgeBarrier(() => this.reveal());
 
         this._connect(manager, 'changed', () => {
             this._windowStart = null;   // a scene opened or closed: back to the most recent
@@ -127,10 +126,6 @@ export class StageStrip {
         this._connect(Main.overview, 'showing', () => this._sync());
         this._connect(Main.overview, 'hidden', () => this._sync());
         this._connect(Main.sessionMode, 'updated', () => this._sync());
-        this._connect(Main.extensionManager, 'extension-state-changed', (m, ext) => {
-            if (ext.uuid === ISLA_UUID)
-                this._watchIsla();
-        });
         this._connect(this._edge, 'enter-event', () => this.reveal());
         this._scrollAccum = 0;
         this._lastStep = 0;
@@ -141,7 +136,7 @@ export class StageStrip {
         this.volume = new StripVolume(this._addButton);
         this.appsBubble = new AppsBubble(this, settings, view);
         manager.thumbnailRect = (scene, opts) => this._thumbnailRect(scene, opts);
-        this._watchIsla();
+        this._applyTone();
         this._rebuild();
     }
 
@@ -151,8 +146,6 @@ export class StageStrip {
         for (const [obj, id] of this._ids)
             obj.disconnect(id);
         this._ids = [];
-        this._islaSettings?.disconnect(this._islaId);
-        this._islaSettings = null;
         for (const id of this._sources)
             GLib.source_remove(id);
         this._sources.clear();
@@ -168,6 +161,8 @@ export class StageStrip {
         this._endDrag();
         this._manager.thumbnailRect = null;
         this.actor.remove_all_transitions();
+        this._barrier.destroy();
+        this._barrier = null;
         Main.layoutManager.removeChrome(this.actor);
         Main.layoutManager.removeChrome(this._edge);
         this.actor.destroy();
@@ -189,44 +184,9 @@ export class StageStrip {
 
     // ---------- colors ----------
 
-    // IslaDock's own settings (its schema lives in its folder).
-    _watchIsla() {
-        this._islaSettings?.disconnect(this._islaId);
-        this._islaSettings = null;
-        const isla = Main.extensionManager.lookup(ISLA_UUID);
-        if (isla?.state === 1) {   // ACTIVE
-            try {
-                const dir = isla.dir.get_child('schemas');
-                const source = Gio.SettingsSchemaSource.new_from_directory(dir.get_path(),
-                    Gio.SettingsSchemaSource.get_default(), false);
-                const schema = source.lookup(ISLA_SCHEMA, false);
-                if (schema) {
-                    this._islaSettings = new Gio.Settings({settings_schema: schema});
-                    this._islaId = this._islaSettings.connect('changed', (s, key) => {
-                        if (key === 'isla-piel' || key === 'isla-oscura')
-                            this._applyTone();
-                    });
-                }
-            } catch (e) {
-                this._islaSettings = null;
-            }
-        }
-        this._applyTone();
-    }
-
-    // 'clara' | 'oscura' | 'aurora' (IslaDock's skins) or 'propia' (Escenas' own dark glass).
+    // 'clara' or 'propia' (the dark glass).
     _tone() {
-        const pref = this._settings.get_string('color-franja');
-        if (pref === 'claro')
-            return 'clara';
-        if (pref === 'oscuro')
-            return 'propia';
-        const isla = this._islaSettings;
-        if (!isla)
-            return 'propia';
-        if (isla.get_string('isla-piel') === 'aurora')
-            return 'aurora';
-        return isla.get_boolean('isla-oscura') ? 'oscura' : 'clara';
+        return this._settings.get_string('color-franja') === 'claro' ? 'clara' : 'propia';
     }
 
     _applyTone() {
@@ -274,7 +234,7 @@ export class StageStrip {
         this._list.destroy_all_children();
         // The most recently used, shown in their fixed (numbered) order. All of
         // them (up to the setting) are shown: when they do not fit at full size
-        // (IslaDock's top island takes room, small screens) they get smaller.
+        // (small screens) they get smaller.
         this._cards = this._settings.get_string('estilo-miniaturas') === 'tarjeta';
         this._list.set_style_class_name(`escenas-list ${this._cards ? 'tarjetas' : 'abanico'}`);
         const max = this._settings.get_int(this._cards ? 'max-tarjetas' : 'max-miniaturas');
@@ -476,7 +436,7 @@ export class StageStrip {
     }
 
     // Where the strip sits when shown (no animation offset): 16 px from the
-    // edge, centred vertically in the work area (Frank: as much room above as below).
+    // edge, centred vertically in the work area.
     _rect() {
         const area = workArea();
         if (!area)
@@ -579,6 +539,7 @@ export class StageStrip {
         else
             this.actor.remove_style_class_name('encima');
         this._edge.visible = wanted && covered && !show && !this._drawerOpen;
+        this._barrier.update(wanted && covered && !this._drawerOpen, this._left);
         this._animate(show, wanted);
     }
 
@@ -629,7 +590,7 @@ export class StageStrip {
     // On X11 the shell takes clicks only inside its input region, computed from
     // where the strip *is* when its size or visibility changes. Shown sliding in
     // from outside the screen, that is off screen: clicks fell through to the
-    // window behind (Frank: Firefox with a video). Recompute after the slide.
+    // window behind. Recompute after the slide.
     _refreshInputRegion() {
         Main.layoutManager._queueUpdateRegions?.();
     }
@@ -719,7 +680,7 @@ export class StageStrip {
     // What a DND drag over "Nueva escena" would make a scene of: a window
     // (anything carrying metaWindow) of ours, or the front window of a
     // thumbnail whose scene mixes apps (a pile of one app's windows would
-    // only join itself again: those stay together, Frank 2026-11-02).
+    // only join itself again: those stay together).
     _windowToTake(source) {
         const m = this._manager;
         if (source?.metaWindow)

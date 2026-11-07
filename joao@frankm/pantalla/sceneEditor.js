@@ -17,6 +17,7 @@ export class SceneEditor {
     constructor(view) {
         this._view = view;
         this.menu = null;
+        this._idles = new Set();
         this._menuManager = new PopupMenu.PopupMenuManager(view, {actionMode: Shell.ActionMode.POPUP});
     }
 
@@ -116,12 +117,11 @@ export class SceneEditor {
         menu.connect('open-state-changed', (m, open) => {
             if (open)
                 return;
-            GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+            this._idle(() => {
                 if (this.menu === menu)
                     this.menu = null;
                 if (!gone)
                     menu.destroy();
-                return GLib.SOURCE_REMOVE;
             });
         });
         menu.open(true);
@@ -129,11 +129,19 @@ export class SceneEditor {
 
     // Runs after the menu let go of the keyboard, so a dialog can take it.
     _afterMenu(fn) {
-        return () => GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+        return () => this._idle(() => {
             if (this._view.isOpen)
                 fn();
+        });
+    }
+
+    _idle(fn) {
+        const id = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+            this._idles.delete(id);
+            fn();
             return GLib.SOURCE_REMOVE;
         });
+        this._idles.add(id);
     }
 
     openCardMenu(card) {
@@ -179,6 +187,8 @@ export class SceneEditor {
     }
 
     destroy() {
+        this._idles.forEach(id => GLib.source_remove(id));
+        this._idles.clear();
         this.menu?.destroy();
         this.menu = null;
     }

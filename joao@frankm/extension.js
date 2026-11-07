@@ -15,6 +15,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import {CornerIndicator} from './privacidad/cornerIndicator.js';
 import {PrivacyMonitor} from './privacidad/privacyMonitor.js';
+import {forgetColors} from './notificaciones/bubbleLook.js';
 import {NotificationStore} from './notificaciones/notificationStore.js';
 import {TrayBridge} from './notificaciones/trayBridge.js';
 import {KeepAwake} from './sistema/keepAwake.js';
@@ -104,8 +105,11 @@ export default class JoaoExtension extends Extension {
     }
 
     disable() {
-        // Also kept on the lock screen ("unlock-dialog") so locking does not rewrite GNOME's
-        // input-source shortcuts every time; the page closes when locked.
+        // João uses the "unlock-dialog" session mode because the scenes exist only in memory:
+        // disabling on every lock would lose which windows go together and bring back every window
+        // the strip keeps minimized, on top of rewriting GNOME's shortcuts each time. While locked
+        // it shows nothing: the page closes, the strip hides, the top bar returns, and no key
+        // handler stays connected (escritorio/keyEvents.js).
         this._startup.destroy();
         this._startup = null;
         this._keepAwake.destroy();
@@ -124,6 +128,7 @@ export default class JoaoExtension extends Extension {
         this._tiling = null;
         this._notifications.destroy();
         this._notifications = null;
+        forgetColors();
         this._privacy.destroy();
         this._privacy = null;
         this._topBar.destroy();

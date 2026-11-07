@@ -16,6 +16,8 @@ import {appColor, rgb} from '../notificaciones/bubbleLook.js';
 import {notificationStore} from '../notificaciones/notificationStore.js';
 import {screenPicture} from '../notificaciones/screenPicture.js';
 import {sourceIcon, sourceName} from '../notificaciones/sourceLook.js';
+import {connectKeyPress} from '../escritorio/keyEvents.js';
+import {privacyCorner} from '../privacidad/cornerIndicator.js';
 import {plainBody} from '../sistema/notifications.js';
 import {RoundedCorners} from './sceneThumbnail.js';
 
@@ -23,6 +25,7 @@ const WIDTH = 300;
 const RADIUS = 22;
 const ROWS = 4;
 const GAP = 4;
+const CHIPS_GAP = 6;
 const MARGIN = 8;
 const LEAVE_MARGIN = 250;
 const FADE = 180;
@@ -73,8 +76,6 @@ class JoaoNotifyList extends St.Widget {
         this.add_child(this._box);
         this._rows = new St.BoxLayout({style_class: 'joao-notify-rows', orientation: Clutter.Orientation.VERTICAL, x_expand: true});
         this._box.add_child(this._rows);
-        this._empty = new St.Label({style_class: 'joao-notify-empty', text: 'No hay notificaciones', x_align: Clutter.ActorAlign.CENTER});
-        this._box.add_child(this._empty);
         this._clear = new St.Button({
             style_class: 'joao-notify-clear',
             label: 'Limpiar',
@@ -86,10 +87,15 @@ class JoaoNotifyList extends St.Widget {
         this._box.add_child(this._clear);
 
         Main.layoutManager.addTopChrome(this);
-        this.connect('key-press-event', (a, event) => this._onKey(event));
+        connectKeyPress(this, event => this._onKey(event));
         this._storeId = this._store.connect('changed', () => {
-            if (this.visible && !this._closing)
-                this._fill();
+            if (this.visible && !this._closing) {
+                if (this._store.recent(1).length > 0)
+                    this._fill();
+                else
+                    this.close(true);
+            }
+            this._bubble.notificationsChanged();
         });
     }
 
@@ -97,7 +103,7 @@ class JoaoNotifyList extends St.Widget {
         return this.visible && !this._closing;
     }
 
-    // The pointer on the bubble or here, or on the list of what is in use, right above this one.
+    // The pointer on the bubble or here, or on the chips of what is in use, right below this one.
     syncHover() {
         if (this._leaveId)
             GLib.source_remove(this._leaveId);
@@ -125,7 +131,7 @@ class JoaoNotifyList extends St.Widget {
         if (!reopening) {
             // Before it is on screen: the picture must not have the list in it.
             await this._takePicture();
-            if (run !== this._run || !this._bubble.wantsList)
+            if (run !== this._run || (!this._bubble.wantsList && !this._byKeyboard))
                 return;
             this.set({opacity: 0, translation_x: -this._side * SHIFT, scale_x: SCALE_FROM, scale_y: SCALE_FROM, visible: true});
             Main.layoutManager.uiGroup.set_child_above_sibling(this, null);
@@ -181,7 +187,6 @@ class JoaoNotifyList extends St.Widget {
         this._closing = false;
         this.hide();
         this._copy.destroy_all_children();
-        this._bubble.listMoved();
     }
 
     async _takePicture() {
@@ -205,9 +210,6 @@ class JoaoNotifyList extends St.Widget {
         this._rows.destroy_all_children();
         const notifications = this._store.recent(ROWS);
         notifications.forEach(notification => this._rows.add_child(this._row(notification)));
-        this._rows.visible = notifications.length > 0;
-        this._clear.visible = notifications.length > 0;
-        this._empty.visible = notifications.length === 0;
         this._face.style = `background-color: rgba(255, 255, 255, ${this._settings.get_double('island-glass')});`;
         this._place();
     }
@@ -257,7 +259,13 @@ class JoaoNotifyList extends St.Widget {
         return onRight ? -1 : 1;
     }
 
-    // Beside the bubble, towards the middle of the screen, aligned with it below.
+    chipsMoved() {
+        if (this.isShowing)
+            this._place();
+    }
+
+    // Beside the bubble, towards the middle of the screen, aligned with it below, or above the chips
+    // when there are any.
     _place() {
         const actor = this._bubble.actor;
         const monitor = Main.layoutManager.primaryMonitor;
@@ -270,13 +278,14 @@ class JoaoNotifyList extends St.Widget {
         const [w, h] = actor.get_transformed_size();
         const gap = GAP * scale;
         const left = this._side > 0 ? x + w + gap : x - width - gap;
-        const top = Math.max(monitor.y + MARGIN * scale, Math.min(y + h - height, monitor.y + monitor.height - height - MARGIN * scale));
+        const chipsTop = privacyCorner()?.chipsTop ?? null;
+        const bottom = chipsTop === null ? y + h : chipsTop - CHIPS_GAP * scale;
+        const top = Math.max(monitor.y + MARGIN * scale, Math.min(bottom - height, monitor.y + monitor.height - height - MARGIN * scale));
         this.set_position(Math.round(left), Math.round(top));
         this.set_size(width, height);
         this.set_pivot_point(this._side > 0 ? 0 : 1, 1);
         this._mask.resize(width, height, RADIUS * scale);
         this._copy.set({translation_x: -left, translation_y: -top});
-        this._bubble.listMoved();
     }
 
     destroy() {

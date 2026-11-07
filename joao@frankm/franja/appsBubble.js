@@ -23,7 +23,7 @@ const PRIVACY_FADE = 200;
 const ROOT_SIZE = 74;       // stylesheet: the focus ring, the widest part
 const LIGHT_SIZE = 72;
 const LIGHT_END = 110;
-const CENTER = new Graphene.Point({x: 0.5, y: 0.5});
+const center = () => new Graphene.Point({x: 0.5, y: 0.5});
 
 // Free space the strip must leave under itself: half the bubble and its ring, and a gap.
 export const BUBBLE_ROOM = 38;
@@ -37,7 +37,7 @@ function circle(styleClass, params = {}) {
         style_class: styleClass,
         x_align: Clutter.ActorAlign.CENTER,
         y_align: Clutter.ActorAlign.CENTER,
-        pivot_point: CENTER,
+        pivot_point: center(),
         ...params,
     });
 }
@@ -54,15 +54,15 @@ export class AppsBubble {
             name: 'escenasAppsBubble',
             style_class: 'escenas-apps-bubble-root',
             layout_manager: new Clutter.BinLayout(),
-            pivot_point: CENTER,
+            pivot_point: center(),
             visible: false,
         });
         this._focusRing = circle('escenas-apps-bubble-focus', {visible: false});
         this._ring = circle('escenas-apps-bubble-ring');
         this._light = circle('escenas-apps-bubble-light', {opacity: 0});
         this._privacyBorder = circle('escenas-apps-bubble-privacy', {opacity: 0});
-        this._grid = new St.Icon({icon_name: 'view-app-grid-symbolic', icon_size: 21, pivot_point: CENTER});
-        this._cross = new St.Icon({icon_name: 'window-close-symbolic', icon_size: 21, pivot_point: CENTER,
+        this._grid = new St.Icon({icon_name: 'view-app-grid-symbolic', icon_size: 21, pivot_point: center()});
+        this._cross = new St.Icon({icon_name: 'window-close-symbolic', icon_size: 21, pivot_point: center(),
             opacity: 0, rotation_angle_z: -90});
         const icons = new St.Widget({layout_manager: new Clutter.BinLayout()});
         icons.add_child(this._grid);
@@ -106,7 +106,7 @@ export class AppsBubble {
         this._button.connect('key-focus-in', () => this._focusRing.show());
         this._button.connect('key-focus-out', () => this._focusRing.hide());
 
-        Main.layoutManager.addChrome(this.actor, {affectsInputRegion: true});
+        Main.layoutManager.addChrome(this.actor);
         this._stripIds = ['x', 'y', 'width', 'height', 'translation-x', 'opacity', 'visible']
             .map(prop => strip.actor.connect(`notify::${prop}`, () => this.sync()));
         this._settingIds = [
@@ -187,8 +187,11 @@ export class AppsBubble {
             this._notify.placeCaption();
         else
             this._notify.settle();
-        if (!this.onScreen)
+        if (!this.onScreen) {
             this.notifyList.close(false);
+            privacyCorner()?.bubbleHover(false);
+        }
+        privacyCorner()?.placeLater();
     }
 
     // ---------- notifications ----------
@@ -245,7 +248,7 @@ export class AppsBubble {
         if (!this._peeking || this._peekEndId)
             return;
         this._peekEndId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, PEEK_CHECK, () => {
-            if (this._button.hover || this.notifyList.hover || privacyCorner()?.listHover)
+            if (this._button.hover || this.notifyList.hover || privacyCorner()?.trayHover)
                 return GLib.SOURCE_CONTINUE;
             this._peekEndId = 0;
             this._stopPeek(true);
@@ -286,25 +289,41 @@ export class AppsBubble {
             this._stopPeek(false);
         }
         this._notify.syncCount();
+        privacyCorner()?.refreshTray();
+    }
+
+    get _listsNotifications() {
+        return this.showsNotifications && this.onScreen && this._settings.get_boolean('bubble-notify-list');
+    }
+
+    get _hasNotifications() {
+        return notificationStore().recent(1).length > 0;
     }
 
     get wantsList() {
-        if (!this.showsNotifications || !this.onScreen || !this._settings.get_boolean('bubble-notify-list'))
+        if (!this._listsNotifications || !this._hasNotifications)
             return false;
-        return this._button.hover || this.notifyList.hover || !!privacyCorner()?.listHover;
+        return this._button.hover || this.notifyList.hover || !!privacyCorner()?.trayHover;
+    }
+
+    // Nothing to list: the tray says so instead.
+    get wantsEmptyPill() {
+        return this._listsNotifications && !this._hasNotifications;
     }
 
     openListFromKeyboard() {
-        if (this.showsNotifications && this.onScreen && this._settings.get_boolean('bubble-notify-list')) {
+        if (!this._listsNotifications)
+            return false;
+        if (this._hasNotifications)
             this.notifyList.openFromKeyboard();
-            return true;
-        }
-        return false;
+        else
+            privacyCorner()?.openFromKeyboard();
+        return true;
     }
 
-    // The list of what is in use goes above this one.
-    listMoved() {
-        privacyCorner()?.placeLater();
+    notificationsChanged() {
+        privacyCorner()?.refreshTray();
+        this.notifyList?.syncHover();
     }
 
     otherListHover() {
@@ -323,7 +342,6 @@ export class AppsBubble {
     // The first in use of microphone, camera, screen gives the colour.
     _syncPrivacy() {
         const [device] = this._privacy.active;
-        this._lit = !!device;
         if (device)
             this._privacyBorder.set_style_class_name(`escenas-apps-bubble-privacy ${device}`);
         this._privacyBorder.remove_all_transitions();
@@ -336,7 +354,7 @@ export class AppsBubble {
     }
 
     _syncListHover() {
-        privacyCorner()?.bubbleHover((this._button.hover || !!this.notifyList?.hover) && this._lit && !this._drawer);
+        privacyCorner()?.bubbleHover((this._button.hover || !!this.notifyList?.hover) && this.onScreen);
         this.notifyList?.syncHover();
     }
 
@@ -350,7 +368,7 @@ export class AppsBubble {
             Main.layoutManager.removeChrome(this.actor);
             drawer.add_child(this.actor);
             // Not holding the input while the page closes: this keeps the bubble clickable on X11.
-            Main.layoutManager.trackChrome(this.actor, {affectsInputRegion: true});
+            Main.layoutManager.trackChrome(this.actor);
             this._drawer = drawer;
         }
         this.actor.show();
@@ -385,7 +403,7 @@ export class AppsBubble {
         this._settle();
         Main.layoutManager.untrackChrome(this.actor);
         this._drawer.remove_child(this.actor);
-        Main.layoutManager.addChrome(this.actor, {affectsInputRegion: true});
+        Main.layoutManager.addChrome(this.actor);
         this._drawer = null;
         this.sync();
     }

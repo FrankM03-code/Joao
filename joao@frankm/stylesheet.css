@@ -686,62 +686,122 @@
     font-weight: 600;
 }
 
-.escenas-full-footer {
-    spacing: 8px;
-}
-
-.escenas-full-settings {
-    height: 40px;
-    border-radius: 14px;
-    padding: 0 12px;
-    background-color: rgba(255, 255, 255, 0.12);
-    border: 2px solid transparent;
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.escenas-full-settings:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-
-.escenas-full-settings:focus {
-    border-color: -st-accent-color;
-}
-
-.escenas-full-power {
-    spacing: 4px;
-}
-
-.escenas-full-power-button {
-    width: 40px;
-    height: 40px;
+/* The foot of the panel: one bar, three states (sistema/powerBar.js) */
+.pb-bar {
+    height: 68px;
     border-radius: 22px;
-    background-color: rgba(255, 255, 255, 0.12);
-    border: 2px solid transparent;
-    color: #ffffff;
+    background-color: rgba(0, 0, 0, 0.18);
 }
 
-.escenas-full-power-button:hover {
+.pb-layer {
+    padding: 6px;
+    spacing: 2px;
+}
+
+.pb-btn {
+    min-width: 52px;
+    height: 56px;
+    border-radius: 16px;
+    color: rgba(255, 255, 255, 0.85);
+    transition-duration: 180ms;
+}
+
+.pb-btn:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.pb-btn:active {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-.escenas-full-power-button:focus {
-    border-color: -st-accent-color;
+.pb-btn:focus {
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5);
 }
 
-.escenas-full-power-button.poweroff {
+.pb-icon {
+    icon-size: 18px;
+}
+
+.pb-label {
+    font-size: 8pt;
+    margin-top: 4px;
+}
+
+.pb-btn.pb-power {
     background-color: #ffffff;
-    color: #b42318;
+    color: #1d3f6e;
 }
 
-.escenas-full-power-button.poweroff:hover {
-    background-color: #f3dcda;
+.pb-btn.pb-power:hover {
+    background-color: rgba(255, 255, 255, 0.85);
+}
+
+.pb-btn.pb-back {
+    min-width: 30px;
+}
+
+/* Five labels and the arrow share the width of the panel. */
+.pb-btn.pb-flex {
+    min-width: 0;
+    padding: 0 2px;
+}
+
+.pb-btn.pb-danger {
+    background-color: rgba(255, 107, 107, 0.22);
+    color: #ffd2cc;
+}
+
+.pb-btn.pb-danger:hover {
+    background-color: rgba(255, 107, 107, 0.35);
+}
+
+.pb-btn.pb-recording {
+    background-color: rgba(255, 107, 107, 0.25);
+}
+
+.pb-btn.pb-recording .pb-icon {
+    color: #ff6b6b;
+}
+
+.pb-count {
+    border-radius: 22px;
+}
+
+.pb-progress {
+    background-color: rgba(255, 138, 128, 0.35);
+    border-radius: 22px;
+}
+
+.pb-count-row {
+    padding: 0 12px 0 18px;
+    spacing: 10px;
+}
+
+.pb-count-label {
+    font-size: 11pt;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.pb-cancel {
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 10pt;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.14);
+}
+
+.pb-cancel:hover {
+    background-color: rgba(255, 255, 255, 0.24);
+}
+
+.pb-cancel:focus {
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5);
 }
 
 /* ========== Scenes: the strip (franja/) ========== */
-/* ---------- the strip panel (tones: propia = Escenas' own dark glass; clara / oscura /
-   aurora = IslaDock's skins) ---------- */
+/* ---------- the strip panel (tones: propia = the dark glass; clara = light) ---------- */
 .escenas-strip {
   spacing: 10px;
   padding: 10px 7px;
@@ -752,8 +812,6 @@
   color: #f4f5fa;
 }
 .escenas-strip.propia.encima { background-color: rgba(14, 14, 22, 0.32); }
-.escenas-strip.oscura { background-color: rgba(18, 20, 34, 0.86); border-color: rgba(255, 255, 255, 0.10); }
-.escenas-strip.aurora { background-color: rgba(44, 50, 74, 0.74); border-color: rgba(255, 255, 255, 0.06); box-shadow: none; }
 .escenas-strip.clara {
   background-color: rgba(255, 255, 255, 0.81);
   border-color: rgba(30, 32, 40, 0.05);
@@ -1045,34 +1103,9 @@
 .joao-privacy-dot.microphone { background-color: #f28c28; box-shadow: 0 0 0 3px rgba(242, 140, 40, 0.3); }
 .joao-privacy-dot.camera { background-color: #3ddc84; box-shadow: 0 0 0 3px rgba(61, 220, 132, 0.3); }
 .joao-privacy-dot.screen { background-color: #e5484d; box-shadow: 0 0 0 3px rgba(229, 72, 77, 0.3); }
-.joao-privacy-list {
-    width: 280px;
-    padding: 6px;
-    spacing: 4px;
-    border-radius: 20px;
-    background-color: rgba(10, 14, 26, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    color: #ffffff;
-}
-.joao-privacy-row { padding: 8px; spacing: 10px; border-radius: 14px; }
-.joao-privacy-row.microphone { background-color: rgba(242, 140, 40, 0.13); }
-.joao-privacy-row.camera { background-color: rgba(61, 220, 132, 0.13); }
-.joao-privacy-row.screen { background-color: rgba(229, 72, 77, 0.13); }
-.joao-privacy-row-icon { width: 30px; height: 30px; border-radius: 15px; }
-.joao-privacy-row-icon.microphone, .joao-privacy-badge-face.microphone { background-color: #f28c28; color: #1a1206; }
-.joao-privacy-row-icon.camera, .joao-privacy-badge-face.camera { background-color: #3ddc84; color: #0a2a18; }
-.joao-privacy-row-icon.screen, .joao-privacy-badge-face.screen { background-color: #e5484d; color: #ffffff; }
-.joao-privacy-row-device { font-size: 12px; font-weight: 700; }
-.joao-privacy-row-app { font-size: 11px; color: rgba(255, 255, 255, 0.82); }
-.joao-privacy-row-go:hover .joao-privacy-row-app, .joao-privacy-row-go:focus .joao-privacy-row-app { color: #ffffff; text-decoration: underline; }
-.joao-privacy-row-stop {
-    width: 32px;
-    height: 32px;
-    border-radius: 16px;
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.14);
-}
-.joao-privacy-row-stop:hover, .joao-privacy-row-stop:focus { background-color: #ffffff; color: #123f8a; }
+.joao-privacy-badge-face.microphone { background-color: #f28c28; color: #1a1206; }
+.joao-privacy-badge-face.camera { background-color: #3ddc84; color: #0a2a18; }
+.joao-privacy-badge-face.screen { background-color: #e5484d; color: #ffffff; }
 
 /* The same devices on a thumbnail of the strip. */
 .joao-privacy-frame { border-radius: 10px; border: 2px solid transparent; }
@@ -1163,9 +1196,24 @@
 .joao-notify-row-icon { width: 30px; height: 30px; border-radius: 15px; color: #ffffff; }
 .joao-notify-row-title { font-size: 12px; font-weight: 700; color: #ffffff; }
 .joao-notify-row-body { font-size: 11px; color: rgba(255, 255, 255, 0.85); }
-.joao-notify-empty { padding: 12px; font-size: 12px; color: rgba(255, 255, 255, 0.85); }
 .joao-notify-clear { padding: 4px 12px; border-radius: 13px; font-size: 11px; font-weight: 700; color: #ffffff; background-color: rgba(255, 255, 255, 0.14); }
 .joao-notify-clear:hover, .joao-notify-clear:focus { background-color: rgba(255, 255, 255, 0.26); }
+
+/* Beside the launcher button: what is in use and, with no notifications, a small pill */
+.joao-tray { spacing: 6px; }
+.joao-chip { height: 32px; padding: 0; border-radius: 16px; color: #ffffff; }
+.joao-chip.microphone { background-color: #e08a1e; }
+.joao-chip.camera { background-color: #7a5cd6; }
+.joao-chip.screen { background-color: #d9534f; }
+.joao-chip.microphone:hover, .joao-chip.microphone:focus { background-color: #ec9a33; }
+.joao-chip.camera:hover, .joao-chip.camera:focus { background-color: #8b70e0; }
+.joao-chip.screen:hover, .joao-chip.screen:focus { background-color: #e46661; }
+.joao-chip-slot { width: 32px; height: 32px; }
+.joao-chip-icon { icon-size: 16px; }
+.joao-chip-action { icon-size: 14px; }
+.joao-chip-label { width: 86px; font-size: 9pt; }
+.joao-empty { height: 32px; padding: 0 12px; spacing: 6px; border-radius: 16px; background-color: rgba(255, 255, 255, 0.22); color: #ffffff; font-size: 9pt; }
+.joao-empty.icon-only { padding: 0 9px; }
 
 /* Where a window will land when it is dropped on a screen edge or corner */
 .joao-tile-preview {

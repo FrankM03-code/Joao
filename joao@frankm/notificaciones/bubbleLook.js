@@ -100,6 +100,11 @@ export function appColor(notification) {
     return cache.get(id) ?? accentColor();
 }
 
+// Nothing kept once João goes off.
+export function forgetColors() {
+    cache.clear();
+}
+
 export const rgb = ([r, g, b], alpha = 1) => `rgba(${r}, ${g}, ${b}, ${alpha})`;
 
 // GNOME does not say which notifications are messages: the app does, by what it is.

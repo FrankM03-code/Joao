@@ -9,6 +9,7 @@ import Shell from 'gi://Shell';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+import {isMaximized} from '../sistema/compat.js';
 import {escenasManager, escenasStrip} from '../franja/escenasMode.js';
 import {STRIP_MARGIN, STRIP_WIDTH} from '../franja/layout.js';
 
@@ -27,10 +28,6 @@ export const appOf = win => Shell.WindowTracker.get_default().get_window_app(win
 export const isPlainWindow = win => win.get_window_type() === Meta.WindowType.NORMAL &&
     !win.get_transient_for() && !win.skip_taskbar;
 
-function isMaximized(win) {
-    return win.get_maximized() === Meta.MaximizeFlags.BOTH;
-}
-
 export function pointerMonitor() {
     const [x, y] = global.get_pointer();
     const rect = new Mtk.Rectangle({x, y, width: 1, height: 1});
@@ -38,7 +35,7 @@ export function pointerMonitor() {
     return Main.layoutManager.monitors[index] ? index : Main.layoutManager.primaryIndex;
 }
 
-// The work area of a monitor, minus Escenas' strip when it lives there.
+// The work area of a monitor, minus the strip when it lives there.
 export function usableArea(monitorIndex) {
     const work = Main.layoutManager.getWorkAreaForMonitor(monitorIndex);
     const area = {x: work.x, y: work.y, width: work.width, height: work.height};
@@ -94,7 +91,7 @@ export function takeNewWindow(win) {
     return !!release;
 }
 
-// A taken window that has not drawn yet goes back to Escenas' normal path.
+// A taken window that has not drawn yet goes back to the normal path.
 export const returnNewWindow = win => escenasManager()?._onWindowCreated(win);
 
 // A taken window that has drawn, and is not for the stage: what Escenas would have done.

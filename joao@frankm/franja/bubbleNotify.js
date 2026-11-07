@@ -12,13 +12,14 @@ import St from 'gi://St';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 
+import {CHROME_NO_INPUT} from '../sistema/compat.js';
 import {appColor, captionOf, rgb} from '../notificaciones/bubbleLook.js';
 import {notificationStore, retire} from '../notificaciones/notificationStore.js';
 import {sourceIcon} from '../notificaciones/sourceLook.js';
 
 const SPRING = Clutter.AnimationMode.EASE_OUT_BACK;
 const SOFT = Clutter.AnimationMode.EASE_OUT_CUBIC;
-const CENTER = new Graphene.Point({x: 0.5, y: 0.5});
+const center = () => new Graphene.Point({x: 0.5, y: 0.5});
 
 const JUMP_SCALE = 1.14;
 const JUMP_UP = 180;
@@ -39,7 +40,7 @@ const CAPTION_SHIFT = 8;
 const CAPTION_IN = 260;
 const CAPTION_MOVE = 360;
 const CAPTION_MARGIN = 8;
-const CALM_AFTER_LINE = 600;                // 3000 ms and 3600 ms in the spec
+const CALM_AFTER_LINE = 600;
 const BURST_COUNT = 3;
 const BURST_WINDOW = 2000;
 const MAX_COUNT = 99;
@@ -53,7 +54,7 @@ export class BubbleNotify {
         this._settings = settings;
         this._grid = grid;
         this._arrivals = [];
-        this._shown = [];
+        this._shown = new Map();    // notification -> its 'destroy' handler
         this._lineId = 0;
         this._calmId = 0;
         this._ringNow = RING_REST;
@@ -64,7 +65,7 @@ export class BubbleNotify {
             style_class: 'joao-bubble-wave',
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
-            pivot_point: CENTER,
+            pivot_point: center(),
             opacity: 0,
         });
 
@@ -74,7 +75,7 @@ export class BubbleNotify {
             child: this._appIcon,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
-            pivot_point: CENTER,
+            pivot_point: center(),
             opacity: 0,
         });
         icons.add_child(this._iconCircle);
@@ -88,7 +89,7 @@ export class BubbleNotify {
             y_expand: true,
             x_align: Clutter.ActorAlign.END,
             y_align: Clutter.ActorAlign.START,
-            pivot_point: CENTER,
+            pivot_point: center(),
             // The bubble is 58 px in a root of 74, and the count sticks out 6 px of it.
             translation_x: -2,
             translation_y: 2,
@@ -100,7 +101,7 @@ export class BubbleNotify {
             visible: false,
             accessible_role: Atk.Role.NOTIFICATION,
         });
-        Main.layoutManager.addTopChrome(this._caption, {affectsInputRegion: false});
+        Main.layoutManager.addTopChrome(this._caption, CHROME_NO_INPUT);
 
         this._store = notificationStore();
         this._storeId = this._store.connect('changed', () => this.syncCount());
@@ -125,7 +126,9 @@ export class BubbleNotify {
 
         this._cancelTimers();
         this._retireShown();
-        this._shown.push(notification);
+        // Gone by itself before its turn to retire: nothing left to do with it.
+        if (!this._shown.has(notification))
+            this._shown.set(notification, notification.connect('destroy', () => this._shown.delete(notification)));
 
         // In a burst there has already been a jump and a wave.
         if (!burst) {
@@ -350,14 +353,13 @@ export class BubbleNotify {
     }
 
     _retireShown() {
-        const shown = this._shown;
-        this._shown = [];
         // Not the urgent one on screen: it goes when it has been seen.
-        for (const notification of shown) {
+        for (const [notification, id] of [...this._shown]) {
             if (notification === this._sticky)
-                this._shown.push(notification);
-            else
-                retire(notification);
+                continue;
+            notification.disconnect(id);
+            this._shown.delete(notification);
+            retire(notification);
         }
     }
 

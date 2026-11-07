@@ -4,13 +4,14 @@
 // window in its place and, with Escenas on, gathers them into one scene on stage.
 //
 // Every window goes straight to its own place the moment it is drawn and joins the scene on
-// stage, so what is already placed never moves and nothing passes through Escenas' strip.
+// stage, so what is already placed never moves and nothing passes through the strip.
 // The scene is ready, on top and focused as soon as the last window is there; a short watch
 // follows for apps that open more windows or move themselves after showing up.
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 
+import {isMaximized, isPartlyMaximized, maximize, unmaximize} from '../sistema/compat.js';
 import {notify} from '../sistema/notice.js';
 import {addToStage, appOf, escenasManager, isPlainWindow, passDrawnWindow, pointerMonitor,
     returnNewWindow, sendDrawnToStrip, startStageWith, takeNewWindow, usableArea} from './escenasLink.js';
@@ -396,7 +397,7 @@ class Restoration {
     _onTimeLimit() {
         this._limitId = 0;
         this._present();
-        // An app can start without showing its window (Archivos, Frank 2026-11-04): ask once more.
+        // An app can start without showing its window: ask once more.
         const asked = new Set();
         for (const slot of this._pending()) {
             if (slot.launched && !asked.has(slot.appId)) {
@@ -485,14 +486,14 @@ class Restoration {
             win.unmake_fullscreen();
         if (win.get_monitor() !== this._monitor)
             win.move_to_monitor(this._monitor);
-        if (maximized && win.get_maximized() === Meta.MaximizeFlags.BOTH)
+        if (maximized && isMaximized(win))
             return;
-        if (win.get_maximized())
-            win.unmaximize(Meta.MaximizeFlags.BOTH);
+        if (isPartlyMaximized(win))
+            unmaximize(win);
         if (!sameRect(rectOf(win), rect))
             win.move_resize_frame(true, rect.x, rect.y, rect.width, rect.height);
         if (maximized)
-            win.maximize(Meta.MaximizeFlags.BOTH);
+            maximize(win);
     }
 
     // Some apps set their own size or position after showing up. A few steps of it wait for
@@ -514,7 +515,7 @@ class Restoration {
         for (const slot of this._slots) {
             const win = slot.win;
             if (!win || this._held.has(win) || sameRect(rectOf(win), slot.target) ||
-                (slot.maximized && win.get_maximized() === Meta.MaximizeFlags.BOTH))
+                (slot.maximized && isMaximized(win)))
                 continue;
             const count = this._corrections.get(win) ?? 0;
             if (count >= MAX_CORRECTIONS)

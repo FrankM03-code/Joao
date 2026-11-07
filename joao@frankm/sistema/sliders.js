@@ -30,7 +30,7 @@ export function wheelSlider(slider, event) {
 
 // Two-way link between our {row, icon, slider} and GNOME's (its own handler applies the change).
 export function mirrorSlider(signals, ours, theirs) {
-    if (!theirs) {
+    if (!theirs?.slider) {
         ours.row.visible = false;
         return;
     }

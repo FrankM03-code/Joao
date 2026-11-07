@@ -34,6 +34,7 @@ export class SceneManager extends Signals.EventEmitter {
         this._windowIds = new Map();       // Meta.Window -> [signal ids]
         this._used = new Map();            // Meta.Window -> when it last had the focus (counter)
         this._useCount = 0;
+        this._elsewhere = new WeakSet();   // windows left out because they are on another monitor
         this._pending = new Map();         // Meta.Window -> stop() while waiting for its first frame
         this._closing = new Map();         // Meta.Window -> stop() while waiting for it to close
         this._sources = new Set();
@@ -55,6 +56,9 @@ export class SceneManager extends Signals.EventEmitter {
         this._wsIds = [
             global.workspace_manager.connect('active-workspace-changed', () => this.emit('changed')),
         ];
+        // The primary monitor can change under the windows: they did not move, but they count now.
+        this._monitorsId = Main.layoutManager.connect('monitors-changed', () =>
+            display.list_all_windows().forEach(win => this._rehome(win)));
         // Notifications mark the scenes of their app (and their text shows on hover).
         this._sourceIds = new Map();
         this._trayId = Main.messageTray.connect('source-added', (t, source) => this._watchSource(source));
@@ -86,6 +90,9 @@ export class SceneManager extends Signals.EventEmitter {
     }
 
     destroy() {
+        if (this._monitorsId)
+            Main.layoutManager.disconnect(this._monitorsId);
+        this._monitorsId = 0;
         for (const id of this._displayIds ?? [])
             global.display.disconnect(id);
         for (const id of this._wsIds ?? [])
@@ -232,8 +239,7 @@ export class SceneManager extends Signals.EventEmitter {
 
     // A click on a thumbnail. A pile of one app's windows in the strip (several
     // Files windows grouped together) opens only @win, the one chosen in the
-    // pile (Frank: "busco la que quiero y me abre las cuatro"); it leaves the
-    // pile with its dialogs and the rest stay in the strip. Any other scene
+    // pile; it leaves the pile with its dialogs and the rest stay in the strip. Any other scene
     // opens whole.
     // @external: the window was already raised by someone else (a dock,
     // Alt+Tab): no focus change and no animation from the thumbnail.
@@ -422,8 +428,10 @@ export class SceneManager extends Signals.EventEmitter {
             this._later(() => this._addWindow(win, {activate: true}));
             return;
         }
-        const stop = () => {
-            actor.disconnect(frameId);
+        // Once the window is unmanaged its actor may be gone, and its signals with it.
+        const stop = ({actorAlive = true} = {}) => {
+            if (actorAlive)
+                actor.disconnect(frameId);
             win.disconnect(goneId);
             this._pending.delete(win);
         };
@@ -432,7 +440,7 @@ export class SceneManager extends Signals.EventEmitter {
             this._addWindow(win, {activate: true});
         });
         // A window can be unmanaged before drawing anything.
-        const goneId = win.connect('unmanaged', stop);
+        const goneId = win.connect('unmanaged', () => stop({actorAlive: false}));
         this._pending.set(win, stop);
     }
 
@@ -441,8 +449,11 @@ export class SceneManager extends Signals.EventEmitter {
             return;
         // Dialog-like normal windows go with their parent.
         const parentScene = win.get_transient_for() ? this.sceneOf(win.get_transient_for()) : null;
-        if (!parentScene && !this._eligible(win))
+        if (!parentScene && !this._eligible(win)) {
+            this._elsewhere.add(win);
             return;
+        }
+        this._elsewhere.delete(win);
         this._watch(win);
         this._markUsed(win);
         if (parentScene) {
@@ -551,8 +562,15 @@ export class SceneManager extends Signals.EventEmitter {
     // The window changed workspace or monitor: it starts a scene of its own there
     // (or stops being ours if it left the primary monitor).
     _rehome(win) {
-        if (this._busy || !this._windowIds.has(win))
+        if (this._busy)
             return;
+        // Not ours: only one known to be on another monitor comes in here. A window being created
+        // also enters a monitor, before it is placed: that one waits for its first frame.
+        if (!this._windowIds.has(win)) {
+            if (this._elsewhere.has(win) && this._eligible(win))
+                this._addWindow(win, {activate: win.has_focus() || !this._activeOf(win.get_workspace())});
+            return;
+        }
         // A window being closed loses its workspace (and emits
         // workspace-changed) before 'unmanaged': moving it then aborts mutter.
         if (!win.get_workspace() && !win.is_on_all_workspaces())
@@ -576,6 +594,7 @@ export class SceneManager extends Signals.EventEmitter {
         } else {
             this._windowIds.get(win).forEach(id => win.disconnect(id));
             this._windowIds.delete(win);
+            this._elsewhere.add(win);
             this._snapshots.delete(win);
             this._used.delete(win);
             win.set_icon_geometry(null);
@@ -636,8 +655,8 @@ export class SceneManager extends Signals.EventEmitter {
     }
 
     // @scene just went to the strip: if it is made of one app's windows and the
-    // strip already has a scene of that app, they become one (Frank: two
-    // LibreOffice Calc = one card that says 2). Its windows are put side by
+    // strip already has a scene of that app, they become one card that counts
+    // them. Its windows are put side by
     // side the next time it goes on stage.
     _groupInStrip(scene) {
         if (!this._scenes.includes(scene) || this._activeOf(scene.workspace) === scene || !scene.windows.length)

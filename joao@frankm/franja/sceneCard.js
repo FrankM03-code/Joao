@@ -3,7 +3,7 @@
 // "Tarjeta" style: each scene is a flat glass card
 // with a header (app icon, scene name, window count) and a preview of the
 // window that last had the focus, filling the box without its title bar; with
-// more windows, up to two more peek out behind it (Frank: "one behind the other").
+// more windows, up to two more peek out behind it.
 // A dot marks activity (attention request or notification). Click = put the
 // scene on stage; drag it to the middle of the screen = join it to the stage.
 import Clutter from 'gi://Clutter';

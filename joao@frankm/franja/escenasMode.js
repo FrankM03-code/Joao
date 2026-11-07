@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Frank Molina
 // SPDX-License-Identifier: GPL-2.0-or-later
-// Scenes: Stage-Manager-like window scenes, with the strip at the side of the screen.
+// Scenes: window groups with one on stage and the others in a strip at the side of the screen.
 // A part of João that can be switched off from the preferences (modo-activo).
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';

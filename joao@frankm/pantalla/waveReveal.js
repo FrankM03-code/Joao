@@ -4,9 +4,9 @@
 // (a shader), so the blurred background travels with the circle. Off when it is not animating:
 // the page then paints without any extra cost.
 import Clutter from 'gi://Clutter';
-import Cogl from 'gi://Cogl';
 import GObject from 'gi://GObject';
-import Shell from 'gi://Shell';
+
+import {ShaderEffect} from '../sistema/compat.js';
 
 const GROW_TIME = 500;
 const SHRINK_TIME = 380;
@@ -29,17 +29,12 @@ const WaveEffect = GObject.registerClass({
     Properties: {
         'radius': GObject.ParamSpec.float('radius', null, null, GObject.ParamFlags.READWRITE, 0, 100000, 0),
     },
-}, class JoaoWaveEffect extends Shell.GLSLEffect {
+}, class JoaoWaveEffect extends ShaderEffect {
+    static SNIPPET = {declarations: DECLARATIONS, code: CODE};
+
     _init(params) {
         this._radius = 0;
         super._init(params);
-        this._radiusAt = this.get_uniform_location('radius');
-        this._centerAt = this.get_uniform_location('center');
-        this._sizeAt = this.get_uniform_location('size');
-    }
-
-    vfunc_build_pipeline() {
-        this.add_glsl_snippet(Cogl.SnippetHook.FRAGMENT, DECLARATIONS, CODE, false);
     }
 
     get radius() {
@@ -50,14 +45,14 @@ const WaveEffect = GObject.registerClass({
         if (this._radius === value)
             return;
         this._radius = value;
-        this.set_uniform_float(this._radiusAt, 1, [value]);
+        this.setUniform('radius', 1, [value]);
         this.queue_repaint();
         this.notify('radius');
     }
 
     setArea(x, y, width, height) {
-        this.set_uniform_float(this._centerAt, 2, [x, y]);
-        this.set_uniform_float(this._sizeAt, 2, [width, height]);
+        this.setUniform('center', 2, [x, y]);
+        this.setUniform('size', 2, [width, height]);
     }
 });
 

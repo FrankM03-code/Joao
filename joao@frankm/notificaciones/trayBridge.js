@@ -4,8 +4,8 @@
 // Disturb, per-app settings, fullscreen, the lock screen) and keeps every notification in its
 // list; only the last step, building the banner, is replaced, in this one instance.
 // Not bannerBlocked: GNOME's date menu resets it, and it stops all of those decisions as well.
-// What it shows goes to the launcher button, which comes out by itself if the strip is away (Frank
-// 2026-11-05: nothing at the top). The island only with notify-style=island, never as a fallback.
+// What it shows goes to the launcher button, which comes out by itself if the strip is away, so
+// nothing appears at the top. The island only with notify-style=island, never as a fallback.
 import GLib from 'gi://GLib';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';

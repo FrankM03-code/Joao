@@ -4,7 +4,7 @@
 // A wallpaper of its own: GNOME's does not paint what the windows cover, so a copy of it has
 // holes the shape of the windows, and the windows show through them as a rectangle smaller
 // than the screen. Not Shell.BlurMode.BACKGROUND either: that re-reads the screen, and with
-// partial redraws (X11 + NVIDIA on Frank's PC) it blurs stale bits of the page.
+// partial redraws (seen on X11 + NVIDIA) it blurs stale bits of the page.
 import GObject from 'gi://GObject';
 import Shell from 'gi://Shell';
 import St from 'gi://St';

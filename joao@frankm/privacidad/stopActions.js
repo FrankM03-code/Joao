@@ -43,7 +43,7 @@ export function cutLabel(device, entry) {
 export function cutIcon(device, entry) {
     if (device === 'screen')
         return 'media-playback-stop-symbolic';
-    return isMuted(entry) ? 'audio-input-microphone-symbolic' : 'microphone-sensitivity-muted-symbolic';
+    return isMuted(entry) ? 'audio-input-microphone-symbolic' : 'microphone-disabled-symbolic';
 }
 
 export function cut(device, entry) {

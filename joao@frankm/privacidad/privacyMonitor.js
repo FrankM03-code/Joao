@@ -35,13 +35,13 @@ let current = null;
 export const privacyMonitor = () => current;
 
 // The app behind a process: its own window, or a parent's (a terminal for what runs inside it).
-function appFromPid(pid) {
+async function appFromPid(pid) {
     const tracker = Shell.WindowTracker.get_default();
     for (let i = 0; pid > 1 && i < MAX_ANCESTORS; i++) {
         const app = tracker.get_app_from_pid(pid);
         if (app)
             return app;
-        pid = parentPid(pid);
+        pid = await parentPid(pid);
     }
     return null;
 }
@@ -57,8 +57,8 @@ function appFromId(id) {
         system.lookup_heuristic_basename(`${id}.desktop`);
 }
 
-function identify({pid = 0, appId = null, name = null}) {
-    const app = appFromId(appId) ?? (pid ? appFromPid(pid) : null) ?? appFromId(name);
+async function identify({pid = 0, appId = null, name = null}) {
+    const app = appFromId(appId) ?? (pid ? await appFromPid(pid) : null) ?? appFromId(name);
     return {app, appId: app?.get_id() ?? null, name: app?.get_name() ?? name ?? 'Una app', pid};
 }
 
@@ -163,7 +163,7 @@ export const PrivacyMonitor = GObject.registerClass({
             return;
         let pids = [];
         try {
-            pids = parseFuser(await run(['fuser', ...devices]));
+            pids = await parseFuser(await run(['fuser', ...devices]));
         } catch {
             return;
         }
@@ -198,25 +198,29 @@ export const PrivacyMonitor = GObject.registerClass({
                 return;
         }
 
-        const state = {
-            microphone: this._group(inputs.map(stream => {
+        const [microphone, cameraUsers, directCamera, screen] = await Promise.all([
+            Promise.all(inputs.map(async stream => {
                 const node = graph?.bySerial.get(String(stream.get_index()));
-                return {...identify({pid: node?.pid, appId: stream.get_application_id() ?? node?.appId,
+                return {...await identify({pid: node?.pid, appId: stream.get_application_id() ?? node?.appId,
                     name: node?.name ?? stream.get_name()}), stream};
             })),
-            camera: this._group([
-                ...(cameras ? this._consumers(graph?.camera) : []),
-                ...this._directCamera.map(pid => identify({pid})),
-            ]),
-            screen: this._group(sharing ? this._consumers(graph?.screen) : []),
+            cameras ? this._consumers(graph?.camera) : [],
+            Promise.all(this._directCamera.map(pid => identify({pid}))),
+            sharing ? this._consumers(graph?.screen) : [],
+        ]);
+        if (!this._alive || token !== this._token)
+            return;
+        const state = {
+            microphone: this._group(microphone),
+            camera: this._group([...cameraUsers, ...directCamera]),
+            screen: this._group(screen),
         };
         this._hasUnknown = DEVICES.some(d => state[d].some(entry => !entry.app));
         this._watchStreams(state.microphone);
         this._publish(state);
 
         // The graph had no reader for a device that says it is in use: look again in a moment.
-        const unfinished = (cameras && !this._consumers(graph?.camera).length) ||
-            (sharing && !this._consumers(graph?.screen).length);
+        const unfinished = (cameras && !graph?.camera.length) || (sharing && !graph?.screen.length);
         if (unfinished && !this._retried) {
             this._retried = true;
             this._retryId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, RETRY, () => {
@@ -230,9 +234,10 @@ export const PrivacyMonitor = GObject.registerClass({
     }
 
     // In use, but the app cannot be known: still one "Una app".
-    _consumers(nodes) {
-        const found = (nodes ?? []).map(node => identify({pid: node.pid, appId: node.appId, name: node.name}));
-        return found.length ? found : [identify({})];
+    async _consumers(nodes) {
+        const found = await Promise.all((nodes ?? []).map(node =>
+            identify({pid: node.pid, appId: node.appId, name: node.name})));
+        return found.length ? found : [await identify({})];
     }
 
     // One entry per app, with all its streams.

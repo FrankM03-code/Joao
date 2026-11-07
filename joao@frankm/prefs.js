@@ -103,8 +103,11 @@ export default class JoaoPreferences extends ExtensionPreferences {
         island.add(glass);
         island.add(this._switchRow(settings, 'island-blur', 'Desenfocar el fondo', ''));
         island.add(this._switchRow(settings, 'island-auto-contrast', 'Oscurecer el vidrio sobre fondos claros', ''));
-        island.add(this._switchRow(settings, 'island-firefox-as-whatsapp', 'Mostrar como WhatsApp las de Firefox',
-            'Firefox no dice de qué página vienen: desactívalo si permites notificaciones a otra página'));
+        island.add(this._switchRow(settings, 'firefox-as-chat', 'Mostrar las de Firefox como las de un chat',
+            'Firefox no dice de qué página vienen: úsalo solo si una única página de chat tiene permiso para avisar'));
+        const chatName = new Adw.EntryRow({title: 'Nombre de ese chat'});
+        settings.bind('firefox-chat-name', chatName, 'text', Gio.SettingsBindFlags.DEFAULT);
+        island.add(chatName);
         island.add(this._switchRow(settings, 'island-expand-on-hover', 'Expandir al pasar el ratón', 'Si no, solo con clic'));
         const lifetime = new Adw.SpinRow({
             title: 'Segundos que dura la píldora',

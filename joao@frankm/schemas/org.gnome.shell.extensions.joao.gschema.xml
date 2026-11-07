@@ -132,12 +132,11 @@
     </key>
     <key name="color-franja" type="s">
       <choices>
-        <choice value="isla"/>
         <choice value="oscuro"/>
         <choice value="claro"/>
       </choices>
       <default>'oscuro'</default>
-      <summary>Color de la franja: como IslaDock, oscuro o claro</summary>
+      <summary>Color de la franja: oscuro o claro</summary>
     </key>
     <key name="apps-bubble-visible" type="b">
       <default>true</default>
@@ -193,9 +192,13 @@
       <default>true</default>
       <summary>Oscurecer el vidrio sobre fondos claros</summary>
     </key>
-    <key name="island-firefox-as-whatsapp" type="b">
+    <key name="firefox-as-chat" type="b">
       <default>false</default>
-      <summary>Mostrar como WhatsApp las notificaciones de Firefox</summary>
+      <summary>Mostrar las notificaciones de Firefox como las de un chat</summary>
+    </key>
+    <key name="firefox-chat-name" type="s">
+      <default>'Chat'</default>
+      <summary>Nombre del chat con que se muestran</summary>
     </key>
     <key name="island-focus-shortcut" type="as">
       <default><![CDATA[['<Super><Shift>n']]]></default>

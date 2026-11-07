@@ -11,7 +11,6 @@
 // with that window focused; drag it to the middle of the screen = join it to
 // the scene on stage.
 import Clutter from 'gi://Clutter';
-import Cogl from 'gi://Cogl';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Shell from 'gi://Shell';
@@ -19,6 +18,7 @@ import St from 'gi://St';
 
 import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 
+import {ShaderEffect} from '../sistema/compat.js';
 import {FAN_LAYERS, FAN_X, FAN_Y, STACK_HEIGHT, STACK_WIDTH, THUMB_HEIGHT, THUMB_WIDTH,
     sceneColor} from './layout.js';
 import {PrivacyMarks} from './privacyBadges.js';
@@ -39,35 +39,33 @@ const DOT_DIM = Math.round(255 * 0.45);
 // Rows a thumbnail with several windows adds under its pile (dots and the
 // hover hint; the hint's line is always kept so nothing jumps on hover).
 export const PILE_EXTRA_HEIGHT = 12 + 15;
-const FRAGMENT_HOOK = Cogl.SnippetHook?.FRAGMENT ?? Shell.SnippetHook?.FRAGMENT;
 
 // Rounds the corners of whatever it is applied to (window pictures).
 export const RoundedCorners = GObject.registerClass(
-class RoundedCorners extends Shell.GLSLEffect {
-    _init(width, height, radius) {
-        super._init();
-        this._size = this.get_uniform_location('size');
-        this._radius = this.get_uniform_location('radius');
-        this.set_uniform_float(this._size, 2, [width, height]);
-        this.set_uniform_float(this._radius, 1, [radius]);
-    }
-
-    resize(width, height, radius) {
-        this.set_uniform_float(this._size, 2, [width, height]);
-        this.set_uniform_float(this._radius, 1, [radius]);
-        this.queue_repaint();
-    }
-
-    vfunc_build_pipeline() {
-        this.add_glsl_snippet(FRAGMENT_HOOK,
-            'uniform vec2 size;\nuniform float radius;\n',
-            `vec2 p = cogl_tex_coord_in[0].xy * size;
+class RoundedCorners extends ShaderEffect {
+    static SNIPPET = {
+        declarations: 'uniform vec2 size;\nuniform float radius;\n',
+        code: `vec2 p = cogl_tex_coord_in[0].xy * size;
              vec2 q = min(p, size - p);
              if (q.x < radius && q.y < radius) {
                  float d = length(vec2(radius) - q);
                  cogl_color_out *= clamp(radius - d + 0.5, 0.0, 1.0);
              }`,
-            false);
+    };
+
+    _init(width, height, radius) {
+        super._init();
+        this._setShape(width, height, radius);
+    }
+
+    _setShape(width, height, radius) {
+        this.setUniform('size', 2, [width, height]);
+        this.setUniform('radius', 1, [radius]);
+    }
+
+    resize(width, height, radius) {
+        this._setShape(width, height, radius);
+        this.queue_repaint();
     }
 });
 
@@ -223,7 +221,7 @@ export const SceneThumbnail = GObject.registerClass({
         const dir = this._left ? 1 : -1;
         // The whole fan centred across the strip, measured as it is drawn
         // (the cards behind are smaller, so they reach less far inwards):
-        // the same room on both sides (Frank 2026-11-03). The front card at
+        // the same room on both sides. The front card at
         // the bottom, on the outer side of the fan.
         const half = THUMB_WIDTH / 2;
         let reach = half;

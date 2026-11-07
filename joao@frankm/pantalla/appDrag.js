@@ -14,6 +14,7 @@ const SCROLL_TICK = 25;
 export class AppDrag {
     constructor(view) {
         this._view = view;
+        this._refreshId = 0;
     }
 
     makeDraggable(button, app) {
@@ -41,7 +42,10 @@ export class AppDrag {
                     return false;
                 onDrop(source.app);
                 // Not now: the drag is still using the actors of this very card.
-                GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                if (this._refreshId)
+                    GLib.source_remove(this._refreshId);
+                this._refreshId = GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
+                    this._refreshId = 0;
                     if (this._view.isOpen)
                         this._view._refreshCards();
                     return GLib.SOURCE_REMOVE;
@@ -70,6 +74,13 @@ export class AppDrag {
             GLib.source_remove(this.scrollId);
         this.scrollId = 0;
         this._setHover(null);
+    }
+
+    destroy() {
+        this.end();
+        if (this._refreshId)
+            GLib.source_remove(this._refreshId);
+        this._refreshId = 0;
     }
 
     _onMotion(event) {

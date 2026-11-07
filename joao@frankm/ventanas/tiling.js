@@ -11,6 +11,7 @@ import St from 'gi://St';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+import {isMaximized, isPartlyMaximized, maximize, unmaximize} from '../sistema/compat.js';
 import {pointerMonitor, usableArea} from '../escenas/escenasLink.js';
 import {glide} from '../escenas/glide.js';
 import {GAP} from '../escenas/layouts.js';
@@ -29,8 +30,6 @@ const frameOf = win => {
 
 const canTile = win => !!win && win.get_window_type() === Meta.WindowType.NORMAL &&
     win.resizeable && !win.is_fullscreen();
-
-const isMaximized = win => win.get_maximized() === Meta.MaximizeFlags.BOTH;
 
 export class Tiling {
     constructor(settings) {
@@ -227,12 +226,12 @@ export class Tiling {
     // @record: what the window held before a drag moved it away from its tiled place.
     _place(win, zone, monitor, record = tiledRecord(win)) {
         if (zone === MAXIMIZE) {
-            win.maximize(Meta.MaximizeFlags.BOTH);
+            maximize(win);
             return;
         }
         const from = frameOf(win);
-        if (win.get_maximized())
-            win.unmaximize(Meta.MaximizeFlags.BOTH);
+        if (isPartlyMaximized(win))
+            unmaximize(win);
         const rect = this._rectOf(zone, monitor);
         remember(win, zone, rect, record?.original ?? frameOf(win));
         win.move_resize_frame(true, rect.x, rect.y, rect.width, rect.height);
@@ -260,7 +259,7 @@ export class Tiling {
 
     _restore(win) {
         if (isMaximized(win)) {
-            win.unmaximize(Meta.MaximizeFlags.BOTH);
+            unmaximize(win);
             return;
         }
         const record = tiledRecord(win);

@@ -361,16 +361,6 @@
     spacing: 10px;
 }
 
-.escenas-full-privacy {
-    height: 30px;
-    border-radius: 15px;
-    padding: 0 12px;
-    background-color: #f28c28;
-    color: #1a1206;
-    font-size: 12px;
-    font-weight: 700;
-}
-
 .escenas-full-chip {
     height: 34px;
     border-radius: 18px;
@@ -615,75 +605,6 @@
 
 .escenas-full-profile:focus {
     border-color: -st-accent-color;
-}
-
-.escenas-full-week {
-    spacing: 4px;
-}
-
-.escenas-full-day {
-    height: 44px;
-    border-radius: 12px;
-    border: 2px solid transparent;
-    color: #ffffff;
-}
-
-.escenas-full-day:hover {
-    background-color: rgba(255, 255, 255, 0.14);
-}
-
-.escenas-full-day.today {
-    background-color: #ffffff;
-    color: #123f8a;
-}
-
-.escenas-full-day:focus {
-    border-color: -st-accent-color;
-}
-
-.escenas-full-day-name {
-    font-size: 10px;
-}
-
-.escenas-full-day-number {
-    font-size: 14px;
-    font-weight: 800;
-}
-
-.escenas-full-notifications {
-    spacing: 6px;
-}
-
-/* 56px high with its border: keep in step with notifications.js */
-.escenas-full-notification {
-    height: 52px;
-    border-radius: 12px;
-    padding: 0 8px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 2px solid transparent;
-    color: #ffffff;
-}
-
-.escenas-full-notification:hover {
-    background-color: rgba(255, 255, 255, 0.16);
-}
-
-.escenas-full-notification:focus {
-    border-color: -st-accent-color;
-}
-
-.escenas-full-notification-box {
-    spacing: 10px;
-}
-
-.escenas-full-notification-meta {
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.85);
-}
-
-.escenas-full-notification-text {
-    font-size: 12px;
-    font-weight: 600;
 }
 
 /* The foot of the panel: one bar, three states (sistema/powerBar.js) */
@@ -1020,6 +941,8 @@
 }
 .escenas-apps-bubble:hover { background-color: #3f6fb6; }
 .escenas-apps-bubble:active { background-color: #24528f; }
+.escenas-apps-bubble { transition-duration: 300ms; }
+.escenas-apps-bubble.menu, .escenas-apps-bubble.menu:hover { background-color: #3b74dc; }
 .escenas-apps-bubble.open { background-color: rgba(255, 255, 255, 0.22); box-shadow: none; }
 .escenas-apps-bubble.open:hover { background-color: rgba(255, 255, 255, 0.3); }
 /* Cuts the strip's outline where it passes behind the bubble. */
@@ -1030,16 +953,6 @@
   background-color: rgba(28, 95, 189, 0.9);
 }
 .escenas-apps-bubble-ring.open { background-color: rgba(255, 255, 255, 0.12); }
-/* Lit while the microphone, the camera or the screen is in use: 60 + 2 x 3 = 66 px. */
-.escenas-apps-bubble-privacy {
-  width: 60px;
-  height: 60px;
-  border-radius: 33px;
-  border: 3px solid transparent;
-}
-.escenas-apps-bubble-privacy.microphone { border-color: #f28c28; box-shadow: 0 0 12px 2px rgba(242, 140, 40, 0.75); }
-.escenas-apps-bubble-privacy.camera { border-color: #3ddc84; box-shadow: 0 0 12px 2px rgba(61, 220, 132, 0.75); }
-.escenas-apps-bubble-privacy.screen { border-color: #e5484d; box-shadow: 0 0 12px 2px rgba(229, 72, 77, 0.75); }
 .escenas-apps-bubble-focus {
   width: 70px;
   height: 70px;
@@ -1100,25 +1013,25 @@
 /* Microphone, camera, screen: dots in the corner and their list. */
 .joao-privacy-dots { padding: 8px; spacing: 6px; }
 .joao-privacy-dot { width: 12px; height: 12px; border-radius: 6px; }
-.joao-privacy-dot.microphone { background-color: #f28c28; box-shadow: 0 0 0 3px rgba(242, 140, 40, 0.3); }
-.joao-privacy-dot.camera { background-color: #3ddc84; box-shadow: 0 0 0 3px rgba(61, 220, 132, 0.3); }
-.joao-privacy-dot.screen { background-color: #e5484d; box-shadow: 0 0 0 3px rgba(229, 72, 77, 0.3); }
-.joao-privacy-badge-face.microphone { background-color: #f28c28; color: #1a1206; }
-.joao-privacy-badge-face.camera { background-color: #3ddc84; color: #0a2a18; }
-.joao-privacy-badge-face.screen { background-color: #e5484d; color: #ffffff; }
+.joao-privacy-dot.microphone { background-color: #ef9f27; box-shadow: 0 0 0 3px rgba(239, 159, 39, 0.3); }
+.joao-privacy-dot.camera { background-color: #1d9e75; box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.3); }
+.joao-privacy-dot.screen { background-color: #e24b4a; box-shadow: 0 0 0 3px rgba(226, 75, 74, 0.3); }
+.joao-privacy-badge-face.microphone { background-color: #ef9f27; color: #1a1206; }
+.joao-privacy-badge-face.camera { background-color: #1d9e75; color: #0a2a18; }
+.joao-privacy-badge-face.screen { background-color: #e24b4a; color: #ffffff; }
 
 /* The same devices on a thumbnail of the strip. */
 .joao-privacy-frame { border-radius: 10px; border: 2px solid transparent; }
-.joao-privacy-frame.microphone { border-color: #f28c28; box-shadow: 0 0 0 4px rgba(242, 140, 40, 0.25); }
-.joao-privacy-frame.camera { border-color: #3ddc84; box-shadow: 0 0 0 4px rgba(61, 220, 132, 0.25); }
-.joao-privacy-frame.screen { border-color: #e5484d; box-shadow: 0 0 0 4px rgba(229, 72, 77, 0.25); }
+.joao-privacy-frame.microphone { border-color: #ef9f27; box-shadow: 0 0 0 4px rgba(239, 159, 39, 0.25); }
+.joao-privacy-frame.camera { border-color: #1d9e75; box-shadow: 0 0 0 4px rgba(29, 158, 117, 0.25); }
+.joao-privacy-frame.screen { border-color: #e24b4a; box-shadow: 0 0 0 4px rgba(226, 75, 74, 0.25); }
 .joao-privacy-badges { spacing: 4px; }
 .joao-privacy-badge { width: 28px; height: 28px; padding: 0; border-radius: 14px; }
 .joao-privacy-badge-face { width: 28px; height: 28px; border-radius: 14px; }
 .joao-privacy-badge-halo { width: 28px; height: 28px; border-radius: 14px; }
-.joao-privacy-badge-halo.microphone { background-color: #f28c28; }
-.joao-privacy-badge-halo.camera { background-color: #3ddc84; }
-.joao-privacy-badge-halo.screen { background-color: #e5484d; }
+.joao-privacy-badge-halo.microphone { background-color: #ef9f27; }
+.joao-privacy-badge-halo.camera { background-color: #1d9e75; }
+.joao-privacy-badge-halo.screen { background-color: #e24b4a; }
 
 /* Notifications: the island. */
 .joao-island { color: #ffffff; }
@@ -1199,21 +1112,42 @@
 .joao-notify-clear { padding: 4px 12px; border-radius: 13px; font-size: 11px; font-weight: 700; color: #ffffff; background-color: rgba(255, 255, 255, 0.14); }
 .joao-notify-clear:hover, .joao-notify-clear:focus { background-color: rgba(255, 255, 255, 0.26); }
 
-/* Beside the launcher button: what is in use and, with no notifications, a small pill */
-.joao-tray { spacing: 6px; }
-.joao-chip { height: 32px; padding: 0; border-radius: 16px; color: #ffffff; }
-.joao-chip.microphone { background-color: #e08a1e; }
-.joao-chip.camera { background-color: #7a5cd6; }
-.joao-chip.screen { background-color: #d9534f; }
-.joao-chip.microphone:hover, .joao-chip.microphone:focus { background-color: #ec9a33; }
-.joao-chip.camera:hover, .joao-chip.camera:focus { background-color: #8b70e0; }
-.joao-chip.screen:hover, .joao-chip.screen:focus { background-color: #e46661; }
-.joao-chip-slot { width: 32px; height: 32px; }
-.joao-chip-icon { icon-size: 16px; }
-.joao-chip-action { icon-size: 14px; }
-.joao-chip-label { width: 86px; font-size: 9pt; }
-.joao-empty { height: 32px; padding: 0 12px; spacing: 6px; border-radius: 16px; background-color: rgba(255, 255, 255, 0.22); color: #ffffff; font-size: 9pt; }
-.joao-empty.icon-only { padding: 0 9px; }
+/* The card "En uso ahora" beside the launcher button (privacidad/tray.js). */
+.joao-use-card {
+  width: 270px;
+  padding: 10px 8px 10px 12px;
+  border-radius: 16px;
+  background-color: rgba(20, 35, 70, 0.84);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+.joao-use-heading { font-size: 11px; color: rgba(255, 255, 255, 0.6); margin: 0 0 4px 2px; }
+.joao-use-row { padding: 5px 0; border-radius: 10px; }
+.joao-use-row:focus { background-color: rgba(255, 255, 255, 0.08); }
+.joao-use-row-box { spacing: 10px; }
+.joao-use-bar { width: 3px; height: 26px; border-radius: 2px; }
+.joao-use-bar.screen { background-color: #e24b4a; }
+.joao-use-bar.microphone { background-color: #ef9f27; }
+.joao-use-bar.camera { background-color: #1d9e75; }
+.joao-use-app { width: 24px; height: 24px; border-radius: 7px; }
+.joao-use-app.plain { background-color: #1a1a1a; }
+.joao-use-app-symbolic { color: #ffffff; }
+.joao-use-title { font-size: 13px; color: #ffffff; }
+.joao-use-sub { font-size: 11px; color: rgba(255, 255, 255, 0.7); font-feature-settings: "tnum"; }
+.joao-stop {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 13px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.12);
+  transition-duration: 220ms;
+}
+.joao-stop-square { width: 8px; height: 8px; border-radius: 2px; background-color: #ffffff; }
+.joao-stop-icon { icon-size: 12px; color: #ffffff; }
+.joao-stop.screen:hover, .joao-stop.screen:focus { background-color: #e24b4a; }
+.joao-stop.microphone:hover, .joao-stop.microphone:focus { background-color: #ef9f27; }
+.joao-stop.camera:hover, .joao-stop.camera:focus { background-color: #1d9e75; }
 
 /* Where a window will land when it is dropped on a screen edge or corner */
 .joao-tile-preview {
@@ -1221,3 +1155,480 @@
     background-color: st-transparentize(-st-accent-color, 0.65);
     border: 2px solid -st-accent-color;
 }
+
+/* The panel's calendar with tasks (sistema/calendarGrid.js, agenda.js; docs/tareas-calendario-spec.md) */
+.joao-today { spacing: 14px; }
+.joao-cal { spacing: 6px; }
+.joao-cal-title { font-size: 14px; font-weight: 700; }
+.joao-cal-link {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.78);
+    padding: 3px 7px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+}
+.joao-cal-link:hover { background-color: rgba(255, 255, 255, 0.12); color: #ffffff; }
+.joao-cal-link:focus { border-color: -st-accent-color; color: #ffffff; }
+.joao-cal-dayname { font-size: 10px; color: rgba(255, 255, 255, 0.72); padding-bottom: 2px; }
+.joao-cal-day {
+    padding: 6px 0 5px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    color: #ffffff;
+}
+.joao-cal-day:hover { background-color: rgba(255, 255, 255, 0.1); }
+.joao-cal-day:focus { border-color: -st-accent-color; }
+.joao-cal-number { font-size: 15px; font-weight: 500; }
+.joao-cal-day.today .joao-cal-number { color: #8fb8ff; font-weight: 700; }
+.joao-cal-day.out .joao-cal-number { color: rgba(255, 255, 255, 0.35); }
+.joao-cal-day.selected, .joao-cal-day.selected:hover { background-color: #ffffff; }
+.joao-cal-day.selected .joao-cal-number { color: #14244a; }
+.joao-cal-dots { spacing: 3px; height: 4px; margin-top: 3px; }
+.joao-cal-dot { width: 4px; height: 4px; border-radius: 2px; background-color: #8fb8ff; }
+.joao-cal-dot.event { background-color: #ef9f27; }
+.joao-cal-dot.late { background-color: #e24b4a; }
+.joao-cal-day.selected .joao-cal-dot { background-color: #1f5fb8; }
+.joao-cal-day.selected .joao-cal-dot.event { background-color: #c47a10; }
+.joao-cal-day.selected .joao-cal-dot.late { background-color: #c03030; }
+
+.joao-agenda { spacing: 6px; }
+.joao-agenda-title { font-size: 13px; font-weight: 600; }
+.joao-agenda-items { spacing: 6px; }
+.joao-agenda-addbtn {
+    padding: 5px 12px 5px 9px;
+    border-radius: 14px;
+    background-color: #8fb8ff;
+    color: #14244a;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid transparent;
+    transition-duration: 150ms;
+}
+.joao-agenda-addbtn:hover { background-color: #a9c8ff; }
+.joao-agenda-addbtn:active { background-color: #7aa6f2; }
+.joao-agenda-addbtn:focus { border-color: #ffffff; }
+.joao-agenda-addbtn-box { spacing: 5px; }
+.joao-agenda-addbtn-icon { icon-size: 12px; }
+.joao-agenda-add {
+    spacing: 8px;
+    padding: 5px 5px 5px 10px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+.joao-agenda-entry {
+    font-size: 13px;
+    color: #ffffff;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 3px 0;
+    caret-color: #ffffff;
+    selection-background-color: #8fb8ff;
+    selected-color: #14244a;
+}
+.joao-agenda-entry StLabel.hint-text { color: rgba(255, 255, 255, 0.55); }
+.joao-agenda-ok {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 8px;
+    color: #14244a;
+    background-color: #8fb8ff;
+    border: 1px solid transparent;
+}
+.joao-agenda-ok:hover { background-color: #a9c8ff; }
+.joao-agenda-ok:focus { border-color: #ffffff; }
+.joao-agenda-item {
+    padding: 8px 10px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.07);
+    border: 1px solid transparent;
+    color: #ffffff;
+}
+.joao-agenda-item.event:hover { background-color: rgba(255, 255, 255, 0.12); }
+.joao-agenda-item.event:focus { border-color: -st-accent-color; }
+.joao-agenda-item.task { spacing: 10px; }
+.joao-agenda-item-box { spacing: 10px; }
+.joao-agenda-bar { width: 3px; border-radius: 2px; background-color: #ef9f27; }
+.joao-agenda-item-title { font-size: 13px; }
+.joao-agenda-item-title.done { text-decoration: line-through; color: rgba(255, 255, 255, 0.55); }
+.joao-agenda-item-sub { font-size: 11px; color: rgba(255, 255, 255, 0.72); }
+.joao-agenda-item-sub.late { color: #f7c1c1; }
+.joao-agenda-check {
+    width: 15px;
+    height: 15px;
+    margin-top: 1px;
+    border-radius: 9px;
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    background-color: transparent;
+    transition-duration: 200ms;
+}
+.joao-agenda-check:hover { border-color: #ffffff; }
+.joao-agenda-check:focus { border-color: -st-accent-color; border-width: 2px; }
+.joao-agenda-check.late { border-color: #f09595; }
+.joao-agenda-check.done { background-color: #8fb8ff; border-color: #8fb8ff; }
+.joao-agenda-check-icon { icon-size: 10px; color: #14244a; }
+.joao-agenda-remove {
+    padding: 3px;
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid transparent;
+}
+.joao-agenda-remove StIcon { icon-size: 10px; }
+.joao-agenda-remove:hover { background-color: rgba(255, 255, 255, 0.14); color: #ffffff; }
+.joao-agenda-remove:focus { border-color: -st-accent-color; }
+.joao-agenda-empty-box { height: 40px; }
+.joao-agenda-empty {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.72);
+    padding: 0 10px;
+}
+
+/* The pinned note and the notifications by app (sistema/notifications.js) */
+.joao-pin {
+    spacing: 10px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+}
+.joao-pin-icon { icon-size: 16px; color: rgba(255, 255, 255, 0.85); margin-top: 1px; }
+.joao-pin-label { font-size: 11px; color: rgba(255, 255, 255, 0.72); }
+.joao-pin-text { font-size: 13px; }
+.joao-pin-unpin {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75);
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+}
+.joao-pin-unpin:hover { background-color: rgba(255, 255, 255, 0.14); color: #ffffff; }
+.joao-pin-unpin:focus { border-color: rgba(255, 255, 255, 0.6); }
+
+.joao-ngroups { spacing: 8px; }
+.joao-ncard {
+    padding: 10px 12px;
+    border-radius: 14px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid transparent;
+    color: #ffffff;
+}
+.joao-ncard:hover { background-color: rgba(255, 255, 255, 0.13); }
+.joao-ncard:focus { border-color: -st-accent-color; }
+.joao-ncard-box { spacing: 10px; }
+.joao-ncard-icon { border-radius: 8px; }
+.joao-ncard-app { font-size: 12px; font-weight: 600; }
+.joao-ncard-time { font-size: 11px; color: rgba(255, 255, 255, 0.72); padding-left: 6px; }
+.joao-ncard-more { font-size: 11px; color: rgba(255, 255, 255, 0.72); margin-top: 2px; }
+.joao-ncard-rest { spacing: 0; }
+.joao-ncard-stack {
+    height: 5px;
+    border-radius: 0 0 12px 12px;
+}
+.joao-ncard-stack.s1 { margin: 0 8px; background-color: rgba(255, 255, 255, 0.06); }
+.joao-ncard-stack.s2 { margin: 0 16px; background-color: rgba(255, 255, 255, 0.04); }
+.joao-nentry { padding: 2px 0; }
+.joao-ncard.open .joao-nentry { padding: 3px 0; }
+.joao-nentry-text { font-size: 13px; }
+.joao-nactions { spacing: 6px; margin-top: 4px; }
+.joao-naction {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid transparent;
+    color: #ffffff;
+}
+.joao-naction:hover { background-color: rgba(255, 255, 255, 0.2); }
+.joao-naction:focus { border-color: -st-accent-color; }
+
+/* The ring's menu and its tools (anillo/; docs/menu-anillo-spec.md) */
+/* The alarm card keeps its own grey glass */
+.joao-ring-popup {
+    background-color: rgba(44, 44, 48, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 18px;
+    color: #ffffff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* The scenes card as the ring's menu (anillo/curtain.js; docs/menu-cortina-spec.md) */
+.joao-curtain {
+    border-radius: 20px;
+    background-color: rgba(40, 90, 190, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    color: #ffffff;
+    transition-duration: 400ms;
+}
+.joao-curtain-inner { padding: 10px; }
+.joao-curtain-inner.con-burbuja { padding-bottom: 42px; }
+.escenas-strip.curtain { background-color: transparent; border-color: transparent; box-shadow: none; }
+.joao-ring-menu { spacing: 4px; }
+.joao-ring-menu-head { font-size: 11px; color: rgba(255, 255, 255, 0.75); padding: 4px 8px 8px; }
+.joao-ring-row {
+    padding: 11px 10px;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    color: #ffffff;
+    transition-duration: 150ms;
+}
+.joao-ring-row:hover, .joao-ring-row:focus { background-color: rgba(255, 255, 255, 0.16); }
+.joao-ring-row:focus { border-color: rgba(143, 184, 255, 0.7); }
+.joao-ring-row-box { spacing: 12px; }
+.joao-ring-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 17px;
+    background-color: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+.joao-ring-icon StIcon { icon-size: 16px; }
+.joao-ring-row-title { font-size: 13px; }
+.joao-ring-row-sub { font-size: 11px; color: rgba(255, 255, 255, 0.75); font-feature-settings: "tnum"; }
+.joao-ring-menu-foot { font-size: 11px; color: rgba(255, 255, 255, 0.6); padding: 10px 6px 0; text-align: center; }
+.joao-ring-tool { spacing: 10px; padding: 4px 4px 0; }
+.joao-ring-head-hint { font-size: 11px; color: rgba(255, 255, 255, 0.75); }
+
+.joao-ring-head { spacing: 8px; padding-bottom: 2px; }
+.joao-ring-back {
+    width: 26px;
+    height: 26px;
+    border-radius: 14px;
+    background-color: rgba(255, 255, 255, 0.14);
+    border: 1px solid transparent;
+    color: #ffffff;
+}
+.joao-ring-back StIcon { icon-size: 14px; }
+.joao-ring-back:hover { background-color: rgba(255, 255, 255, 0.18); }
+.joao-ring-back:focus { border-color: #8fb8ff; }
+.joao-ring-title { font-size: 13px; font-weight: 600; }
+.joao-ring-link {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75);
+    padding: 3px 7px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+}
+.joao-ring-link:hover { background-color: rgba(255, 255, 255, 0.12); color: #ffffff; }
+.joao-ring-link:focus { border-color: rgba(255, 255, 255, 0.5); }
+.joao-ring-link.strong { color: #f7c1c1; font-weight: 600; }
+.joao-ring-choices {
+    padding: 4px;
+    border-radius: 12px;
+    background-color: rgba(30, 70, 160, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    min-width: 130px;
+}
+.joao-ring-choice {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #ffffff;
+    border: 1px solid transparent;
+    text-align: left;
+}
+.joao-ring-choice:hover, .joao-ring-choice:focus { background-color: rgba(255, 255, 255, 0.12); }
+
+/* Quick note: the paper and "Fijar" take the chosen colour, fading between them */
+.joao-note-paper {
+    min-height: 96px;
+    padding: 4px 2px 10px;
+    border-radius: 0;
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
+    font-size: 16px;
+    color: #ffffff;
+    caret-color: #8fb8ff;
+    selection-background-color: #8fb8ff;
+    selected-color: #14244a;
+}
+.joao-note-paper StLabel.hint-text { color: rgba(255, 255, 255, 0.45); }
+.joao-note-line { height: 1.5px; background-color: #8fb8ff; }
+.joao-note-tools { spacing: 6px; }
+.joao-note-tool {
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid transparent;
+    color: #ffffff;
+}
+.joao-note-tool StIcon { icon-size: 15px; }
+.joao-note-tool:hover { background-color: rgba(255, 255, 255, 0.22); }
+.joao-note-tool:focus { border-color: #8fb8ff; }
+.joao-note-said { font-size: 11px; color: #cfe3ff; padding-left: 4px; }
+.joao-note-section { font-size: 10px; color: rgba(255, 255, 255, 0.6); margin-top: 4px; }
+.joao-note-list { spacing: 6px; }
+.joao-note-card {
+    padding: 8px 10px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid transparent;
+    color: #ffffff;
+    text-align: left;
+}
+.joao-note-card:hover { background-color: rgba(255, 255, 255, 0.14); }
+.joao-note-card:focus { border-color: #8fb8ff; }
+.joao-note-card-box { spacing: 10px; }
+.joao-note-card-icon { icon-size: 14px; color: rgba(255, 255, 255, 0.6); margin-top: 1px; }
+.joao-note-card.pinned .joao-note-card-icon { color: #8fb8ff; }
+.joao-note-card-text { font-size: 12px; }
+.joao-note-card-date { font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-top: 2px; }
+/* Checklist lines ("○ ", "● ") in a note */
+.joao-check-row { spacing: 8px; }
+.joao-check {
+    width: 11px;
+    height: 11px;
+    margin-top: 3px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+}
+.joao-check:checked { background-color: #8fb8ff; border-color: #8fb8ff; }
+.joao-check:focus { border-color: #8fb8ff; }
+.joao-note-card-text.done, .joao-pin-text.done { text-decoration: line-through; color: rgba(255, 255, 255, 0.55); }
+.joao-note-pin {
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 12px;
+    background-color: rgba(143, 184, 255, 0.2);
+    border: 1px solid rgba(143, 184, 255, 0.55);
+    color: #e6f1fb;
+}
+.joao-note-pin:hover { background-color: rgba(143, 184, 255, 0.32); }
+.joao-note-pin:focus { border-color: #8fb8ff; }
+.joao-note-pin:active { background-color: rgba(255, 255, 255, 0.3); }
+.joao-note-pin-box { spacing: 6px; }
+.joao-note-pin-icon { icon-size: 14px; color: #8fb8ff; }
+
+/* Clipboard */
+.joao-clip-search {
+    spacing: 8px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.12);
+}
+.joao-clip-search-icon { icon-size: 14px; color: rgba(255, 255, 255, 0.6); }
+.joao-clip-entry {
+    font-size: 12px;
+    color: #ffffff;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 1px 0;
+    caret-color: #ffffff;
+    selection-background-color: #8fb8ff;
+    selected-color: #14244a;
+}
+.joao-clip-entry StLabel.hint-text { color: rgba(255, 255, 255, 0.55); }
+.joao-clip-filters { spacing: 5px; }
+.joao-clip-filter {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border: 1px solid transparent;
+}
+.joao-clip-filter:hover { background-color: rgba(255, 255, 255, 0.2); }
+.joao-clip-filter:checked { background-color: #ffffff; color: #14244a; }
+.joao-clip-filter:focus { border-color: #8fb8ff; }
+.joao-clip-age { font-size: 10px; color: rgba(255, 255, 255, 0.55); padding-left: 6px; }
+.joao-clip-list { spacing: 1px; }
+.joao-clip-section { font-size: 11px; color: rgba(255, 255, 255, 0.6); padding: 6px 2px 2px; }
+.joao-clip-empty { font-size: 12px; color: rgba(255, 255, 255, 0.72); padding: 10px 2px; }
+.joao-clip-row {
+    padding: 6px 8px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    color: #ffffff;
+}
+.joao-clip-row:hover, .joao-clip-row:focus { background-color: rgba(255, 255, 255, 0.12); }
+.joao-clip-row:focus { border-color: rgba(143, 184, 255, 0.7); }
+.joao-clip-row-box { spacing: 10px; }
+.joao-clip-thumb {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    background-color: rgba(255, 255, 255, 0.12);
+}
+.joao-clip-thumb StIcon { icon-size: 13px; }
+.joao-clip-text { font-size: 12px; }
+.joao-clip-text.mono { font-family: monospace; }
+.joao-clip-ok { font-size: 11px; color: #cfe3ff; background-color: rgba(40, 90, 190, 0.95); padding: 2px 8px; border-radius: 10px; }
+.joao-clip-confirm { spacing: 2px; }
+.joao-clip-confirm-text { font-size: 11px; color: rgba(255, 255, 255, 0.8); padding-right: 4px; }
+
+/* Timer */
+.joao-timer-big { font-size: 28px; font-feature-settings: "tnum"; }
+.joao-timer-chips { spacing: 4px; }
+.joao-timer-chip {
+    padding: 5px 9px;
+    border-radius: 15px;
+    font-size: 12px;
+    background-color: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+    border: 1px solid transparent;
+    transition-duration: 200ms;
+}
+.joao-timer-chip:hover { background-color: rgba(255, 255, 255, 0.2); }
+.joao-timer-chip:checked { background-color: #8fb8ff; color: #14244a; }
+.joao-timer-chip:focus { border-color: #ffffff; }
+.joao-timer-label {
+    font-size: 12px;
+    color: #ffffff;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.14);
+    border: 1px solid transparent;
+    box-shadow: none;
+    caret-color: #8fb8ff;
+}
+.joao-timer-label:focus { border-color: rgba(255, 255, 255, 0.4); }
+.joao-timer-label StLabel.hint-text { color: rgba(255, 255, 255, 0.55); }
+.joao-timer-running { spacing: 8px; }
+.joao-timer-start, .joao-timer-stop {
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+.joao-timer-start { background-color: #8fb8ff; color: #14244a; }
+.joao-timer-start:hover { background-color: #a9c8ff; }
+.joao-timer-stop { background-color: rgba(255, 255, 255, 0.12); color: #ffffff; }
+.joao-timer-stop:hover { background-color: rgba(255, 255, 255, 0.2); }
+.joao-timer-start:focus, .joao-timer-stop:focus { border-color: #ffffff; }
+
+/* On the launcher button: the time left and the halo when it ends */
+.joao-ring-time { font-size: 12px; font-weight: 700; color: #ffffff; font-feature-settings: "tnum"; }
+.joao-ring-halo {
+    width: 68px;
+    height: 68px;
+    border-radius: 36px;
+    border: 2px solid #afa9ec;
+}
+
+/* The card that comes out of the button when the timer ends */
+.joao-alarm-card .joao-ring-icon { border-radius: 9px; border: none; background-color: #e2defc; color: #26215c; }
+.joao-alarm-card { width: 290px; padding: 12px; spacing: 10px; border-radius: 16px; }
+.joao-alarm-app { font-size: 12px; font-weight: 600; }
+.joao-alarm-when { font-size: 11px; color: rgba(255, 255, 255, 0.7); }
+.joao-alarm-body { font-size: 14px; margin-top: 2px; }
+.joao-alarm-sub { font-size: 11px; color: rgba(255, 255, 255, 0.72); }
+.joao-alarm-actions { spacing: 6px; margin-top: 8px; }
+.joao-alarm-action {
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border: 1px solid transparent;
+}
+.joao-alarm-action:hover { background-color: rgba(255, 255, 255, 0.2); }
+.joao-alarm-action.primary { background-color: #afa9ec; color: #26215c; font-weight: 600; }
+.joao-alarm-action.primary:hover { background-color: #c2bdf2; }
+.joao-alarm-action:focus { border-color: #ffffff; }

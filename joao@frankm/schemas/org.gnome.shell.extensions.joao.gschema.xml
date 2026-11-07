@@ -253,5 +253,22 @@
       <default><![CDATA[['<Super>Down']]]></default>
       <summary>Llevar la ventana abajo o devolverle el tamaño</summary>
     </key>
+    <key name="ring-note-shortcut" type="as">
+      <default><![CDATA[['<Super><Alt>n']]]></default>
+      <summary>Abrir la nota rápida del anillo</summary>
+    </key>
+    <key name="ring-clipboard-shortcut" type="as">
+      <default><![CDATA[['<Super><Alt>v']]]></default>
+      <summary>Abrir el portapapeles del anillo</summary>
+    </key>
+    <key name="ring-timer-shortcut" type="as">
+      <default><![CDATA[['<Super>t']]]></default>
+      <summary>Abrir el temporizador del anillo</summary>
+    </key>
+    <key name="clipboard-history" type="b">
+      <default>true</default>
+      <summary>Guardar las últimas copias del portapapeles</summary>
+      <description>Al apagarlo se borran las recientes; las fijadas se quedan.</description>
+    </key>
   </schema>
 </schemalist>

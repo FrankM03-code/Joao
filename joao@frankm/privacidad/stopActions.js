@@ -28,7 +28,7 @@ export function goToApp(entry) {
 }
 
 export const canCut = (device, entry) => device === 'screen'
-    ? privacyMonitor().sharingHandles.length > 0
+    ? entry.recording || privacyMonitor().sharingHandles.length > 0
     : device === 'microphone' && (entry.streams.length > 0 || !!privacyMonitor().defaultInput);
 
 export const isMuted = entry => entry.streams.length > 0 && entry.streams.every(s => s.is_muted);
@@ -36,7 +36,7 @@ export const isMuted = entry => entry.streams.length > 0 && entry.streams.every(
 // The words on the button or menu item.
 export function cutLabel(device, entry) {
     if (device === 'screen')
-        return 'Dejar de compartir';
+        return entry.recording ? 'Detener la grabación' : 'Dejar de compartir';
     return isMuted(entry) ? 'Reactivar el micrófono' : 'Silenciar el micrófono';
 }
 
@@ -49,7 +49,10 @@ export function cutIcon(device, entry) {
 export function cut(device, entry) {
     const monitor = privacyMonitor();
     if (device === 'screen') {
-        monitor.sharingHandles.forEach(handle => handle.stop());
+        if (entry.recording)
+            Main.screenshotUI?.stopScreencast();
+        else
+            monitor.sharingHandles.forEach(handle => handle.stop());
         return;
     }
     const mute = !isMuted(entry);

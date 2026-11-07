@@ -18,9 +18,9 @@ import {parseGraph, parseFuser, parentPid} from './pipewireGraph.js';
 // In the order the marks use.
 export const DEVICES = ['microphone', 'camera', 'screen'];
 export const DEVICE_INFO = {
-    microphone: {name: 'Micrófono', inUse: 'Micrófono en uso', doing: 'usando el micrófono', icon: 'audio-input-microphone-symbolic'},
-    camera: {name: 'Cámara', inUse: 'Cámara en uso', doing: 'usando la cámara', icon: 'camera-web-symbolic'},
-    screen: {name: 'Pantalla compartida', inUse: 'Pantalla compartida', doing: 'compartiendo pantalla', icon: 'screen-shared-symbolic'},
+    microphone: {name: 'Micrófono', short: 'Micrófono', inUse: 'Micrófono en uso', doing: 'usando el micrófono', icon: 'audio-input-microphone-symbolic'},
+    camera: {name: 'Cámara', short: 'Cámara', inUse: 'Cámara en uso', doing: 'usando la cámara', icon: 'camera-web-symbolic'},
+    screen: {name: 'Pantalla compartida', short: 'Pantalla', inUse: 'Pantalla compartida', doing: 'compartiendo pantalla', icon: 'screen-shared-symbolic'},
 };
 
 // The same list as GNOME: they only show the input level.
@@ -92,6 +92,7 @@ export const PrivacyMonitor = GObject.registerClass({
         this._ids = [];
         this._streamIds = [];
         this._token = 0;
+        this._since = new Map();   // 'device:app' -> when it started (s, real time)
         this._alive = true;
 
         this._control = getMixerControl();
@@ -109,6 +110,10 @@ export const PrivacyMonitor = GObject.registerClass({
         const remote = Main.panel?.statusArea?.quickSettings?._remoteAccess?._handles ?? [];
         const sharing = Main.panel?.statusArea?.screenSharing?._handles ?? [];
         [...remote, ...sharing].forEach(handle => this._addHandle(handle));
+
+        // GNOME's own screen recorder.
+        if (Main.screenshotUI)
+            this._listen(Main.screenshotUI, 'notify::screencast-in-progress', () => this._queue());
 
         // A window that appears later says whose a recording process was.
         this._listen(Shell.WindowTracker.get_default(), 'tracked-windows-changed', () => {
@@ -185,7 +190,8 @@ export const PrivacyMonitor = GObject.registerClass({
         const token = ++this._token;
         const inputs = this._inputs;
         const cameras = this._cameraMonitor.cameras_in_use > 0;
-        const sharing = this._handles.size > 0;
+        // A recording by GNOME itself has its own row below; these are the apps sharing the screen.
+        const sharing = this.sharingHandles.length > 0;
 
         let graph = null;
         if (inputs.length || cameras || sharing) {
@@ -213,8 +219,12 @@ export const PrivacyMonitor = GObject.registerClass({
         const state = {
             microphone: this._group(microphone),
             camera: this._group([...cameraUsers, ...directCamera]),
-            screen: this._group(screen),
+            screen: this.recording
+                ? [{app: null, appId: null, name: 'Grabación de pantalla', pid: 0, streams: [], recording: true},
+                    ...this._group(screen)]
+                : this._group(screen),
         };
+        this._stamp(state);
         this._hasUnknown = DEVICES.some(d => state[d].some(entry => !entry.app));
         this._watchStreams(state.microphone);
         this._publish(state);
@@ -257,6 +267,29 @@ export const PrivacyMonitor = GObject.registerClass({
         return known.length ? known : list;
     }
 
+    get recording() {
+        return !!Main.screenshotUI?.screencast_in_progress;
+    }
+
+    // Each use keeps the time it started, for the card's clock.
+    _stamp(state) {
+        const now = GLib.get_real_time() / 1e6;
+        const seen = new Set();
+        for (const device of DEVICES) {
+            for (const entry of state[device]) {
+                const key = `${device}:${entry.appId ?? entry.name}`;
+                seen.add(key);
+                if (!this._since.has(key))
+                    this._since.set(key, now);
+                entry.since = this._since.get(key);
+            }
+        }
+        for (const key of [...this._since.keys()]) {
+            if (!seen.has(key))
+                this._since.delete(key);
+        }
+    }
+
     _watchStreams(entries) {
         this._streamIds.forEach(([stream, id]) => stream.disconnect(id));
         this._streamIds = [];
@@ -291,7 +324,7 @@ export const PrivacyMonitor = GObject.registerClass({
     }
 
     get sharingHandles() {
-        return [...this._handles];
+        return [...this._handles].filter(handle => !(handle.is_recording && this.recording));
     }
 
     get defaultInput() {

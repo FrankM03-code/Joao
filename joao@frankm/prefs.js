@@ -26,6 +26,15 @@ export default class JoaoPreferences extends ExtensionPreferences {
         open.add(this._switchRow(settings, 'replace-super', 'Abrir con la tecla Super', 'Actividades sigue en Super+A'));
         open.add(this._switchRow(settings, 'saved-scenes-on-login', 'Mostrarla al iniciar sesión', ''));
 
+        const ring = new Adw.PreferencesGroup({title: 'Menú del anillo',
+            description: 'Clic derecho en el botón del lanzador'});
+        page.add(ring);
+        ring.add(this._shortcutRow(settings, 'ring-note-shortcut', 'Nota rápida'));
+        ring.add(this._shortcutRow(settings, 'ring-clipboard-shortcut', 'Portapapeles'));
+        ring.add(this._shortcutRow(settings, 'ring-timer-shortcut', 'Temporizador'));
+        ring.add(this._switchRow(settings, 'clipboard-history', 'Guardar el historial del portapapeles',
+            'Las 10 últimas copias. Al apagarlo se borran; las fijadas se quedan. Lo que un gestor de contraseñas marca como secreto nunca se guarda'));
+
         const bar = new Adw.PreferencesGroup({title: 'Barra superior'});
         page.add(bar);
         bar.add(this._switchRow(settings, 'hide-top-bar', 'Ocultar la barra superior de GNOME',

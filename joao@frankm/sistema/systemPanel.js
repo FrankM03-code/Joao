@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Frank Molina
 // SPDX-License-Identifier: GPL-2.0-or-later
 // What used to be GNOME's top bar, as a glass card on the right of the page: sliders,
-// switches, power mode, this week, notifications and, stuck to the bottom, the power buttons.
+// switches, power mode, the calendar with its tasks, notifications and, stuck to the bottom, the power buttons.
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
@@ -15,7 +15,6 @@ import {TodayBlock} from './today.js';
 import {SystemToggles} from './toggles.js';
 
 const HIGHLIGHT = 1500;
-const ROW = 62;            // a notification row and its gap, in pixels of the stylesheet
 
 export const SystemPanel = GObject.registerClass(
 class JoaoSystemPanel extends St.BoxLayout {
@@ -36,7 +35,7 @@ class JoaoSystemPanel extends St.BoxLayout {
         this.sliders = new SystemSliders(tooltip);
         this.toggles = new SystemToggles({tooltip, close, settings});
         this.profile = new PowerProfile(tooltip);
-        this.today = new TodayBlock({tooltip, close});
+        this.today = new TodayBlock({close});
         this.notifications = new NotificationsBlock({tooltip, close});
         this.footer = new PowerBar({tooltip, close, closeNow});
         this._blocks.add_child(this.sliders);
@@ -69,20 +68,12 @@ class JoaoSystemPanel extends St.BoxLayout {
 
     refresh() {
         this.today.refresh();
-        this.notifications.rebuild();
+        this.notifications.refresh();
     }
 
-    // How tall the panel is on this screen decides how many notifications fit in view.
-    place(height, scale) {
+    // The blocks scroll above the power bar when the screen is short.
+    place(height) {
         this.height = height;
-        const notificationsHeight = this.notifications.get_preferred_height(-1)[1];
-        const [, others] = this._blocks.get_preferred_height(-1);
-        const [, foot] = this.footer.get_preferred_height(-1);
-        const node = this.get_theme_node();
-        const chrome = node.get_padding(St.Side.TOP) + node.get_padding(St.Side.BOTTOM) + node.get_length('spacing');
-        const free = height - chrome - foot - (others - notificationsHeight);
-        // The block's title stays; one row is always shown, the panel scrolls if even that does not fit.
-        this.notifications.setRoom(Math.floor((free - 30 * scale) / (ROW * scale)));
     }
 
     // Is this control on this machine? (no backlight, no power-profiles-daemon...)

@@ -1,80 +1,132 @@
 // SPDX-FileCopyrightText: 2026 Frank Molina
 // SPDX-License-Identifier: GPL-2.0-or-later
-// What the launcher button has to say, the size of an icon: a round chip per use of the microphone,
-// the camera or the screen, and a small pill when there are no notifications. Pointing at a chip
-// stretches it to show the app and what a click does.
+// The card beside the launcher button while something uses the screen, the microphone or the
+// camera: "En uso ahora" and a row per app and device, in the ring's order, with its colour bar,
+// the app, how long it has been going and a stop button. Clicking the row goes to the app.
 import Clutter from 'gi://Clutter';
+import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Pango from 'gi://Pango';
 import St from 'gi://St';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-const CLOSED_WIDTH = 32;
-const OPEN_WIDTH = 150;
-const SHIFT = 6;
-const REVEAL = 180;
-const CONCEAL = 150;
-const STRETCH = 180;
-const WORDS_FADE = 150;
-const MODE = Clutter.AnimationMode.EASE_OUT_QUAD;
+const SHIFT = 10;
+const FADE_IN = 250;
+const GROW_IN = 400;
+const CONCEAL = 180;
+const COLLAPSE = 400;
+const STOP_HOVER = 220;
+const MODE = Clutter.AnimationMode.EASE_OUT_QUINT;
 
 const scaleFactor = () => St.ThemeContext.get_for_stage(global.stage).scale_factor;
 
-const Chip = GObject.registerClass(
-class JoaoTrayChip extends St.Button {
-    _init(device) {
-        super._init({
-            style_class: `joao-chip ${device}`,
-            can_focus: true,
-            clip_to_allocation: true,
-            button_mask: St.ButtonMask.ONE | St.ButtonMask.THREE,
-            width: CLOSED_WIDTH * scaleFactor(),
-        });
-        // Wider than the chip at rest, which clips it: the words wait out of sight.
-        const box = new St.BoxLayout({x_align: Clutter.ActorAlign.START, y_align: Clutter.ActorAlign.CENTER});
-        this._icon = new St.Icon({style_class: 'joao-chip-icon', fallback_icon_name: 'video-display-symbolic'});
-        this._label = new St.Label({style_class: 'joao-chip-label', opacity: 0, y_align: Clutter.ActorAlign.CENTER});
-        this._label.clutter_text.ellipsize = Pango.EllipsizeMode.END;
-        this._action = new St.Icon({style_class: 'joao-chip-action'});
-        this._actionSlot = new St.Bin({style_class: 'joao-chip-slot', opacity: 0, child: this._action});
-        box.add_child(new St.Bin({style_class: 'joao-chip-slot', child: this._icon}));
-        box.add_child(this._label);
-        box.add_child(this._actionSlot);
-        this.set_child(box);
+// mm:ss, or h:mm:ss from an hour on.
+export function elapsed(since, now = GLib.get_real_time() / 1e6) {
+    const total = Math.max(0, Math.floor(now - since));
+    const h = Math.floor(total / 3600);
+    const m = Math.floor(total / 60) % 60;
+    const s = String(total % 60).padStart(2, '0');
+    return h ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${String(m).padStart(2, '0')}:${s}`;
+}
 
-        this.connect('notify::hover', () => this._syncOpen());
-        this.connect('key-focus-in', () => this._syncOpen());
-        this.connect('key-focus-out', () => this._syncOpen());
-        this.connect('clicked', (chip, button) => (button === Clutter.BUTTON_SECONDARY ? this._use.onSecondary : this._use.onAction)?.());
+const StopButton = GObject.registerClass(
+class JoaoStopButton extends St.Button {
+    _init(device) {
+        super._init({style_class: `joao-stop ${device}`, can_focus: true, track_hover: true,
+            x_align: Clutter.ActorAlign.CENTER, y_align: Clutter.ActorAlign.CENTER});
+        this._square = new St.Widget({style_class: 'joao-stop-square', x_align: Clutter.ActorAlign.CENTER, y_align: Clutter.ActorAlign.CENTER});
+        this._icon = new St.Icon({style_class: 'joao-stop-icon', icon_name: 'audio-input-microphone-symbolic', visible: false});
+        const box = new St.Widget({layout_manager: new Clutter.BinLayout()});
+        box.add_child(this._square);
+        box.add_child(this._icon);
+        this.set_child(box);
+        this.connect('notify::hover', () => this._grow());
+        this.connect('key-focus-in', () => this._grow());
+        this.connect('key-focus-out', () => this._grow());
+    }
+
+    // reactivate: the microphone is muted and the button gives it back.
+    setReactivate(on) {
+        this._square.visible = !on;
+        this._icon.visible = on;
+    }
+
+    _grow() {
+        const up = this.hover || this.has_key_focus();
+        this.set_pivot_point(0.5, 0.5);
+        this.ease({scale_x: up ? 1.08 : 1, scale_y: up ? 1.08 : 1, duration: STOP_HOVER, mode: Clutter.AnimationMode.EASE_OUT_QUAD});
+    }
+});
+
+const Row = GObject.registerClass(
+class JoaoUseRow extends St.Button {
+    _init(device) {
+        super._init({style_class: 'joao-use-row', can_focus: true, x_expand: true, clip_to_allocation: true});
+        this.device = device;
+        const box = new St.BoxLayout({style_class: 'joao-use-row-box', x_expand: true});
+        box.add_child(new St.Widget({style_class: `joao-use-bar ${device}`, y_align: Clutter.ActorAlign.CENTER}));
+        this._iconBin = new St.Bin({style_class: 'joao-use-app', y_align: Clutter.ActorAlign.CENTER});
+        box.add_child(this._iconBin);
+        const words = new St.BoxLayout({vertical: true, x_expand: true, y_align: Clutter.ActorAlign.CENTER});
+        this._title = new St.Label({style_class: 'joao-use-title'});
+        this._sub = new St.Label({style_class: 'joao-use-sub'});
+        for (const label of [this._title, this._sub])
+            label.clutter_text.ellipsize = Pango.EllipsizeMode.END;
+        words.add_child(this._title);
+        words.add_child(this._sub);
+        box.add_child(words);
+        this._stop = new StopButton(device);
+        this._stop.connect('clicked', () => this._use?.onStop?.());
+        box.add_child(this._stop);
+        this.set_child(box);
+        this.connect('clicked', () => this._use?.onGo?.());
     }
 
     fill(use) {
         this._use = use;
-        this._icon.icon_name = use.icon;
-        this._label.text = use.app;
-        this._actionSlot.visible = !!use.actionIcon;
-        if (use.actionIcon)
-            this._action.icon_name = use.actionIcon;
+        this._title.text = use.title;
+        if (use.gicon !== this._gicon || !this._iconBin.child) {
+            this._gicon = use.gicon;
+            this._iconBin.child = new St.Icon({gicon: use.gicon, icon_size: use.appIcon ? 24 : 14,
+                style_class: use.appIcon ? '' : 'joao-use-app-symbolic'});
+            this._iconBin.set_style_class_name(use.appIcon ? 'joao-use-app' : 'joao-use-app plain');
+        }
+        this._stop.visible = !!use.onStop;
+        this._stop.setReactivate(!!use.muted);
+        this._stop.accessible_name = use.stopLabel ?? '';
         this.accessible_name = use.description;
+        this.tick();
     }
 
-    _syncOpen() {
-        const open = this.hover || this.has_key_focus();
-        this.ease({width: (open ? OPEN_WIDTH : CLOSED_WIDTH) * scaleFactor(), duration: STRETCH, mode: MODE});
-        for (const words of [this._label, this._actionSlot])
-            words.ease({opacity: open ? 255 : 0, duration: WORDS_FADE, mode: MODE});
+    tick() {
+        if (!this._use)
+            return;
+        this._sub.text = this._use.muted
+            ? `${this._use.app} · silenciado`
+            : `${this._use.app} · ${elapsed(this._use.since)}`;
+    }
+
+    // Folds away (height and opacity to nothing), then is gone.
+    collapse(done) {
+        this.reactive = false;
+        this.collapsing = true;
+        const [, height] = this.get_preferred_height(-1);
+        this.height = height;
+        this.ease({height: 0, opacity: 0, duration: COLLAPSE, mode: MODE, onComplete: done});
     }
 });
 
 export const CompactTray = GObject.registerClass(
 class JoaoCompactTray extends St.BoxLayout {
     _init() {
-        super._init({style_class: 'joao-tray', reactive: true, track_hover: true, visible: false, opacity: 0});
-        this._chips = new Map();
-        this._pill = null;
+        super._init({style_class: 'joao-use-card', vertical: true, reactive: true, track_hover: true,
+            visible: false, opacity: 0});
+        this.add_child(new St.Label({style_class: 'joao-use-heading', text: 'En uso ahora'}));
+        this._rows = new Map();
         this._side = 1;
         this._closing = false;
+        this._tickId = 0;
         Main.layoutManager.addTopChrome(this);
     }
 
@@ -82,62 +134,72 @@ class JoaoCompactTray extends St.BoxLayout {
         return this.visible && !this._closing;
     }
 
+    // The rows still in use (the notifications list goes above them).
     get chips() {
-        return [...this._chips.values()];
+        return [...this._rows.values()].filter(row => !row.collapsing);
     }
 
-    // Chips are kept from one update to the next: the one under the pointer stays stretched.
-    // uses = [{key, device, app, icon, actionIcon, description, onAction, onSecondary}]
-    update(uses, emptyPill) {
+    // uses = [{key, device, title, app, gicon, appIcon, since, muted, stopLabel, description, onStop, onGo}]
+    update(uses) {
         const keys = new Set(uses.map(use => use.key));
-        for (const [key, chip] of this._chips) {
-            if (!keys.has(key)) {
-                chip.destroy();
-                this._chips.delete(key);
+        for (const [key, row] of this._rows) {
+            if (keys.has(key) || row.collapsing)
+                continue;
+            if (this.visible && !this._closing) {
+                row.collapse(() => {
+                    if (this._rows.get(key) === row)
+                        this._rows.delete(key);
+                    row.destroy();
+                });
+            } else {
+                this._rows.delete(key);
+                row.destroy();
             }
         }
         uses.forEach((use, index) => {
-            let chip = this._chips.get(use.key);
-            if (!chip) {
-                chip = new Chip(use.device);
-                this._chips.set(use.key, chip);
-                this.add_child(chip);
+            let row = this._rows.get(use.key);
+            if (row?.collapsing) {
+                row.destroy();
+                row = null;
             }
-            chip.fill(use);
-            this.set_child_at_index(chip, index);
+            if (!row) {
+                row = new Row(use.device);
+                this._rows.set(use.key, row);
+                this.add_child(row);
+            }
+            row.fill(use);
+            this.set_child_at_index(row, index + 1);
         });
-        this._syncPill(emptyPill, uses.length > 0);
+        this._syncTick();
     }
 
-    // Beside the chips it is only the icon, so as not to compete with them.
-    _syncPill(wanted, iconOnly) {
-        if (!wanted) {
-            this._pill?.destroy();
-            this._pill = null;
-            return;
+    _syncTick() {
+        const want = this.visible && this._rows.size > 0;
+        if (want && !this._tickId) {
+            this._tickId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+                this._rows.forEach(row => row.tick());
+                return GLib.SOURCE_CONTINUE;
+            });
+        } else if (!want && this._tickId) {
+            GLib.source_remove(this._tickId);
+            this._tickId = 0;
         }
-        if (!this._pill) {
-            this._pill = new St.BoxLayout({style_class: 'joao-empty'});
-            this._pill.add_child(new St.Icon({icon_name: 'notifications-disabled-symbolic', icon_size: 14, y_align: Clutter.ActorAlign.CENTER}));
-            this._pillLabel = new St.Label({text: 'Todo al día', y_align: Clutter.ActorAlign.CENTER});
-            this._pill.add_child(this._pillLabel);
-            this.add_child(this._pill);
-        }
-        this._pillLabel.visible = !iconOnly;
-        if (iconOnly)
-            this._pill.add_style_class_name('icon-only');
-        else
-            this._pill.remove_style_class_name('icon-only');
     }
 
     // side: 1 when it opens towards the right of what it belongs to, -1 towards the left.
+    // It grows from the corner next to the button, at the bottom.
     reveal(side) {
         this._side = side;
         this._closing = false;
         this.remove_all_transitions();
-        if (!this.visible)
-            this.set({opacity: 0, translation_x: -side * SHIFT, visible: true});
-        this.ease({opacity: 255, translation_x: 0, duration: REVEAL, mode: MODE});
+        this.set_pivot_point(side > 0 ? 0 : 1, 1);
+        if (!this.visible) {
+            this.set({opacity: 0, scale_x: 0.96, scale_y: 0.96, translation_x: -side * SHIFT * scaleFactor(), visible: true});
+            this._rows.forEach(row => row.tick());
+        }
+        this.ease({opacity: 255, duration: FADE_IN, mode: Clutter.AnimationMode.EASE_OUT_QUAD});
+        this.ease({scale_x: 1, scale_y: 1, translation_x: 0, duration: GROW_IN, mode: MODE});
+        this._syncTick();
     }
 
     conceal(animate) {
@@ -149,7 +211,7 @@ class JoaoCompactTray extends St.BoxLayout {
             return;
         }
         this._closing = true;
-        this.ease({opacity: 0, translation_x: -this._side * SHIFT, duration: CONCEAL, mode: MODE,
+        this.ease({opacity: 0, scale_x: 0.96, scale_y: 0.96, duration: CONCEAL, mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onStopped: finished => {
                 if (finished)
                     this._finishConceal();
@@ -159,10 +221,13 @@ class JoaoCompactTray extends St.BoxLayout {
     _finishConceal() {
         this._closing = false;
         this.hide();
-        this.update([], false);
+        this.update([]);
     }
 
     destroy() {
+        if (this._tickId)
+            GLib.source_remove(this._tickId);
+        this._tickId = 0;
         Main.layoutManager.removeChrome(this);
         super.destroy();
     }

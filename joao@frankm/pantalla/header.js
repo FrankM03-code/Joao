@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Frank Molina
 // SPDX-License-Identifier: GPL-2.0-or-later
 // The top of the page: time and date on the left, the search box centered on the screen,
-// and on the right the privacy pill and a chip with the network, volume and battery icons
-// GNOME would show in its bar.
+// and on the right a chip with the network, volume and battery icons GNOME would show in its bar.
+// What is in use (screen, microphone, camera) is told by the launcher button's ring.
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -11,7 +11,6 @@ import GObject from 'gi://GObject';
 import St from 'gi://St';
 
 import {gnome, Signals, whenReady} from '../sistema/gnome.js';
-import {privacyMonitor} from '../privacidad/privacyMonitor.js';
 
 const SEARCH_WIDTH = 560;
 const SIDE_ROOM = 300;    // what the clock and the chip need on each side of the search box
@@ -60,9 +59,6 @@ class JoaoLauncherHeader extends St.Widget {
             y_align: Clutter.ActorAlign.CENTER,
         });
         this.add_child(status);
-        this._privacyLabel = new St.Label({y_align: Clutter.ActorAlign.CENTER});
-        this.privacy = new St.Bin({style_class: 'escenas-full-privacy', visible: false, y_align: Clutter.ActorAlign.CENTER, child: this._privacyLabel});
-        status.add_child(this.privacy);
 
         this.chip = new St.Button({
             style_class: 'escenas-full-chip',
@@ -100,13 +96,6 @@ class JoaoLauncherHeader extends St.Widget {
         this._signals.connect(this._wallClock, 'notify::clock', () => this.syncClock());
         this._signals.connect(this._interface, 'changed::clock-format', () => this.syncClock());
         this.syncClock();
-        const monitor = privacyMonitor();
-        const syncPrivacy = () => {
-            this._privacyLabel.text = monitor.text;
-            this.privacy.visible = monitor.text !== '';
-        };
-        this._signals.connect(monitor, 'changed', syncPrivacy);
-        syncPrivacy();
         this._cancelReady = whenReady(() => this._watch());
         this.connect('destroy', () => this._onDestroy());
     }

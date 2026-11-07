@@ -18,6 +18,7 @@ import * as Signals from 'resource:///org/gnome/shell/misc/signals.js';
 import {arrange, restorePlace} from './layout.js';
 
 const CLOSE_WATCH = 15000;       // ms: how long a window being closed may still ask something
+const BACK_GUARD = 1000;        // ms: a window minimized this soon after being brought back was not the user
 const ATTENTION_SIGNALS = ['notify::demands-attention', 'notify::urgent'];
 const WINDOW_SIGNALS = ['position-changed', 'size-changed', 'notify::fullscreen',
     'notify::maximized-horizontally', 'notify::maximized-vertically'];
@@ -35,6 +36,7 @@ export class SceneManager extends Signals.EventEmitter {
         this._used = new Map();            // Meta.Window -> when it last had the focus (counter)
         this._useCount = 0;
         this._elsewhere = new WeakSet();   // windows left out because they are on another monitor
+        this._broughtBack = new WeakMap(); // Meta.Window -> when someone else brought it back (ms)
         this._pending = new Map();         // Meta.Window -> stop() while waiting for its first frame
         this._closing = new Map();         // Meta.Window -> stop() while waiting for it to close
         this._sources = new Set();
@@ -704,6 +706,19 @@ export class SceneManager extends Signals.EventEmitter {
         const scene = this.sceneOf(win);
         if (!scene)
             return;
+        const back = this._broughtBack.get(win);
+        this._broughtBack.delete(win);
+        if (win.minimized && back !== undefined && Date.now() - back < BACK_GUARD) {
+            // Hidden again right after being asked for, and not by us: nobody minimizes a window
+            // that fast on purpose. Seen on X11 (Firefox, 2026-11-07): the screen was left empty.
+            // It is brought back once more; the log says what happened.
+            console.warn(`João: "${win.title}" se minimizó ${Date.now() - back} ms después de volver; se muestra otra vez`);
+            this._later(() => {
+                if (win.minimized && this.sceneOf(win))
+                    this.activate(this.sceneOf(win), {window: win, animate: false});
+            });
+            return;
+        }
         if (win.minimized) {
             // Its last frame, while the minimize animation still shows it.
             this._takeSnapshot(win);
@@ -734,6 +749,7 @@ export class SceneManager extends Signals.EventEmitter {
         }
         // Someone else brought back a window we had hidden.
         this._minimizedByUs.delete(win);
+        this._broughtBack.set(win, Date.now());
         if (this._activeOf(scene.workspace) !== scene)
             this.open(scene, win, {external: true});
     }
@@ -744,6 +760,9 @@ export class SceneManager extends Signals.EventEmitter {
         for (const win of scene.windows) {
             if (win.minimized)
                 continue;
+            const back = this._broughtBack.get(win);
+            if (back !== undefined && Date.now() - back < BACK_GUARD)
+                console.warn(`João: se esconde "${win.title}" ${Date.now() - back} ms después de volver\n${new Error().stack}`);
             this._takeSnapshot(win);
             this._minimizedByUs.add(win);
             this._setIconGeometry(win, to);

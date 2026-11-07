@@ -5,7 +5,8 @@
 // could not be clicked; there it shows a × in the same spot. The page moves it in and out
 // (enterDrawer, leaveDrawer) and animates itself. Its border lights up in the colour of the
 // microphone, the camera or the screen while one of them is in use. Notifications arrive here too
-// (bubbleNotify.js, notifyList.js).
+// (bubbleNotify.js, notifyList.js). Right click (or a long press) opens the ring's menu
+// (anillo/ringTools.js); while its timer runs, the time left takes the place of the grid.
 import Clutter from 'gi://Clutter';
 import GLib from 'gi://GLib';
 import Graphene from 'gi://Graphene';
@@ -13,23 +14,33 @@ import St from 'gi://St';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+import {ringTools} from '../anillo/ringTools.js';
 import {notificationStore} from '../notificaciones/notificationStore.js';
 import {privacyCorner} from '../privacidad/cornerIndicator.js';
 import {DEVICE_INFO, privacyMonitor} from '../privacidad/privacyMonitor.js';
+import {SegmentRing} from '../privacidad/segmentRing.js';
+import {isMuted} from '../privacidad/stopActions.js';
 import {BubbleNotify} from './bubbleNotify.js';
 import {NotifyList} from './notifyList.js';
 
-const PRIVACY_FADE = 200;
+const RING_RADIUS = 35;     // the button's radius (29) + 6
 const ROOT_SIZE = 74;       // stylesheet: the focus ring, the widest part
 const LIGHT_SIZE = 72;
 const LIGHT_END = 110;
 const center = () => new Graphene.Point({x: 0.5, y: 0.5});
+const LONG_PRESS = 600;
+// The timer's end: the button shakes twice (angle, scale) and a lilac halo goes out twice.
+const SHAKE = [[-12, 1.08], [10, 1.08], [-8, 1.06], [6, 1.04], [-3, 1.02], [0, 1]];
+const SHAKE_STEP = 150;
+const HALO_TIME = 1200;
+const HALO_SCALE = 1.9;
 
 // Free space the strip must leave under itself: half the bubble and its ring, and a gap.
 export const BUBBLE_ROOM = 38;
 // What the strip's padding grows at the bottom (stylesheet: .con-burbuja, 42 instead of 10).
 export const BUBBLE_INSET = 32;
 const PEEK_FADE = 200;
+const animations = () => St.Settings.get().enable_animations;
 const PEEK_CHECK = 400;     // ms between looks at the pointer before leaving
 
 function circle(styleClass, params = {}) {
@@ -60,13 +71,18 @@ export class AppsBubble {
         this._focusRing = circle('escenas-apps-bubble-focus', {visible: false});
         this._ring = circle('escenas-apps-bubble-ring');
         this._light = circle('escenas-apps-bubble-light', {opacity: 0});
-        this._privacyBorder = circle('escenas-apps-bubble-privacy', {opacity: 0});
+        this._privacyBorder = new SegmentRing(RING_RADIUS, {x_align: Clutter.ActorAlign.CENTER, y_align: Clutter.ActorAlign.CENTER,
+            pivot_point: center()});
         this._grid = new St.Icon({icon_name: 'view-app-grid-symbolic', icon_size: 21, pivot_point: center()});
         this._cross = new St.Icon({icon_name: 'window-close-symbolic', icon_size: 21, pivot_point: center(),
             opacity: 0, rotation_angle_z: -90});
+        this._time = new St.Label({style_class: 'joao-ring-time', visible: false,
+            x_align: Clutter.ActorAlign.CENTER, y_align: Clutter.ActorAlign.CENTER});
+        this._halo = circle('joao-ring-halo', {opacity: 0});
         const icons = new St.Widget({layout_manager: new Clutter.BinLayout()});
         icons.add_child(this._grid);
         icons.add_child(this._cross);
+        icons.add_child(this._time);
         this._button = new St.Button({
             style_class: 'escenas-apps-bubble',
             can_focus: true,
@@ -76,12 +92,24 @@ export class AppsBubble {
             accessible_name: 'Abrir el cajón de apps',
         });
         this._notify = new BubbleNotify(this, settings, this._grid, icons);
-        for (const part of [this._focusRing, this._ring, this._notify.wave, this._privacyBorder, this._light, this._button, this._notify.count])
+        for (const part of [this._halo, this._focusRing, this._ring, this._notify.wave, this._privacyBorder, this._light, this._button, this._notify.count])
             this.actor.add_child(part);
         this.notifyList = new NotifyList(this, settings);
         this.notifyList.connect('notify::hover', () => this._syncListHover());
 
+        this._button.connect('button-press-event', (actor, event) => {
+            if (event.get_button() !== Clutter.BUTTON_SECONDARY || this._drawer)
+                return Clutter.EVENT_PROPAGATE;
+            ringTools()?.toggleMenu();
+            return Clutter.EVENT_STOP;
+        });
+        this._button.connect('touch-event', (actor, event) => this._onTouch(event));
         this._button.connect('clicked', () => {
+            // The long press already opened the menu: its release is not a click.
+            if (this._longPressed) {
+                this._longPressed = false;
+                return;
+            }
             // Unread ones: straight to where they are read.
             if (!this._open && this.showsNotifications && notificationStore().unread > 0)
                 this._view.showSection('today');
@@ -119,9 +147,16 @@ export class AppsBubble {
         this._syncPrivacy();
         this._notify.syncCount();
         this.sync();
+        ringTools()?.attachBubble(this);
     }
 
     destroy() {
+        ringTools()?.detachBubble(this);
+        this._cancelLongPress();
+        this._stopShake();
+        if (this._haloId)
+            GLib.source_remove(this._haloId);
+        this._haloId = 0;
         this._stopPeek(false);
         this._stripIds.forEach(id => this._strip.actor.disconnect(id));
         this._settingIds.forEach(id => this._settings.disconnect(id));
@@ -192,6 +227,114 @@ export class AppsBubble {
             privacyCorner()?.bubbleHover(false);
         }
         privacyCorner()?.placeLater();
+        ringTools()?.bubbleMoved();
+    }
+
+    // ---------- the ring's tools ----------
+
+    _onTouch(event) {
+        const type = event.type();
+        if (type === Clutter.EventType.TOUCH_BEGIN && !this._drawer) {
+            this._cancelLongPress();
+            this._longPressed = false;
+            this._longPressId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, LONG_PRESS, () => {
+                this._longPressId = 0;
+                this._longPressed = true;
+                ringTools()?.openMenu();
+                return GLib.SOURCE_REMOVE;
+            });
+        } else if (type === Clutter.EventType.TOUCH_END || type === Clutter.EventType.TOUCH_CANCEL) {
+            this._cancelLongPress();
+        }
+        return Clutter.EVENT_PROPAGATE;
+    }
+
+    _cancelLongPress() {
+        if (this._longPressId)
+            GLib.source_remove(this._longPressId);
+        this._longPressId = 0;
+    }
+
+    // text: the time left ("12:40"), or null for the grid again. fraction: the lilac arc, 1 → 0.
+    setTimer(text, fraction) {
+        this._timerText = text;
+        this._time.text = text ?? '';
+        this._privacyBorder.setTimer(text === null ? null : fraction);
+        this._syncTime();
+        this.syncName();
+    }
+
+    // The scenes card is the ring's menu: the dots turn into a × and the ring is a little lighter.
+    setMenuOpen(open) {
+        if (this._menuOpen === open)
+            return;
+        this._menuOpen = open;
+        if (open)
+            this._button.add_style_class_name('menu');
+        else
+            this._button.remove_style_class_name('menu');
+        this._syncTime();
+        // The dots turn into the ×; the button itself does not move (no jump: Frank 2026-11-07).
+        this._later(() => this._showIcon(open || this._open, Clutter.AnimationMode.EASE_OUT_QUAD, 350));
+    }
+
+    // Not while the page or the menu is open: the button shows its × then.
+    _syncTime() {
+        const on = !!this._timerText && !this._open && !this._menuOpen;
+        this._time.visible = on;
+        this._grid.visible = !on;
+    }
+
+    // The timer ended: the button shakes twice and a halo goes out of it, twice. Without
+    // animations, a single flash of the halo.
+    alarm() {
+        this._later(() => {
+            this._stopShake();
+            this._sendHalo(animations() ? 2 : 1);
+            if (!animations())
+                return;
+            const steps = [...SHAKE, ...SHAKE];
+            const next = () => {
+                const step = steps.shift();
+                if (!step || !this.actor) {
+                    this._shaking = false;
+                    this._easeScale(SHAKE_STEP, Clutter.AnimationMode.EASE_OUT_QUAD);
+                    return;
+                }
+                const [angle, scale] = step;
+                this.actor.ease({rotation_angle_z: angle, scale_x: scale, scale_y: scale, duration: SHAKE_STEP,
+                    mode: Clutter.AnimationMode.EASE_IN_OUT_QUAD, onStopped: finished => finished && next()});
+            };
+            this._shaking = true;
+            next();
+        });
+    }
+
+    _stopShake() {
+        if (!this._shaking || !this.actor)
+            return;
+        this._shaking = false;
+        this.actor.remove_transition('rotation-angle-z');
+        this.actor.rotation_angle_z = 0;
+    }
+
+    _sendHalo(times) {
+        const halo = this._halo;
+        halo.remove_all_transitions();
+        if (!animations()) {
+            // One still flash: shown for a moment, then gone.
+            halo.set({scale_x: 1.3, scale_y: 1.3, opacity: 204});
+            this._haloId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, HALO_TIME / 2, () => {
+                this._haloId = 0;
+                halo.opacity = 0;
+                return GLib.SOURCE_REMOVE;
+            });
+            return;
+        }
+        halo.set({scale_x: 1, scale_y: 1, opacity: 204});
+        halo.ease({scale_x: HALO_SCALE, scale_y: HALO_SCALE, opacity: 0, duration: HALO_TIME,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            onStopped: finished => finished && times > 1 && this._sendHalo(times - 1)});
     }
 
     // ---------- notifications ----------
@@ -301,14 +444,9 @@ export class AppsBubble {
     }
 
     get wantsList() {
-        if (!this._listsNotifications || !this._hasNotifications)
+        if (!this._listsNotifications || !this._hasNotifications || ringTools()?.cardShown)
             return false;
         return this._button.hover || this.notifyList.hover || !!privacyCorner()?.trayHover;
-    }
-
-    // Nothing to list: the tray says so instead.
-    get wantsEmptyPill() {
-        return this._listsNotifications && !this._hasNotifications;
     }
 
     openListFromKeyboard() {
@@ -317,7 +455,7 @@ export class AppsBubble {
         if (this._hasNotifications)
             this.notifyList.openFromKeyboard();
         else
-            privacyCorner()?.openFromKeyboard();
+            privacyCorner()?.openFromKeyboard();   // the card, when something is in use
         return true;
     }
 
@@ -334,21 +472,18 @@ export class AppsBubble {
         const uses = this._privacy.active.map(d => DEVICE_INFO[d].inUse).join(', ');
         const unread = this.showsNotifications && !this._open ? notificationStore().unread : 0;
         let base = this._open ? 'Cerrar el cajón de apps' : 'Abrir el cajón de apps';
+        if (this._timerText && !this._open)
+            base = `${base}. Temporizador: ${this._timerText}`;
         if (unread)
             base = unread === 1 ? 'Apps y 1 notificación' : `Apps y ${unread} notificaciones`;
         this._button.accessible_name = uses ? `${base}. ${uses}` : base;
     }
 
-    // The first in use of microphone, camera, screen gives the colour.
+    // A segment per device in use; a muted microphone is not listening, so it has none.
     _syncPrivacy() {
-        const [device] = this._privacy.active;
-        if (device)
-            this._privacyBorder.set_style_class_name(`escenas-apps-bubble-privacy ${device}`);
-        this._privacyBorder.remove_all_transitions();
-        if (this._privacyBorder.has_allocation())
-            this._privacyBorder.ease({opacity: device ? 255 : 0, duration: PRIVACY_FADE, mode: Clutter.AnimationMode.EASE_OUT_QUAD});
-        else
-            this._privacyBorder.opacity = device ? 255 : 0;
+        const live = this._privacy.active.filter(device => device !== 'microphone' ||
+            this._privacy.state.microphone.some(entry => !isMuted(entry)));
+        this._privacyBorder.setActive(live);
         this.syncName();
         this._syncListHover();
     }
@@ -381,6 +516,7 @@ export class AppsBubble {
         if (this._open === open)
             return;
         this._open = open;
+        this._syncTime();
         this._syncPrivacy();
         this._notify.syncCount();
         for (const part of [this._button, this._ring]) {
@@ -422,10 +558,10 @@ export class AppsBubble {
             this.actor.ease({scale_x: scale, scale_y: scale, duration, mode});
     }
 
-    _showIcon(open) {
-        const mode = Clutter.AnimationMode.EASE_OUT_QUAD;
-        this._grid.ease({rotation_angle_z: open ? 90 : 0, opacity: open ? 0 : 255, duration: 420, mode});
-        this._cross.ease({rotation_angle_z: open ? 0 : -90, opacity: open ? 255 : 0, duration: 420, mode});
+    _showIcon(open, mode = Clutter.AnimationMode.EASE_OUT_QUAD, duration = 420) {
+        this._grid.ease({rotation_angle_z: open ? 90 : 0, opacity: open ? 0 : 255, duration, mode});
+        this._cross.ease({rotation_angle_z: open ? 0 : -90, opacity: open ? 255 : 0, duration, mode});
+        this._time.ease({opacity: open ? 0 : 255, duration, mode: Clutter.AnimationMode.EASE_OUT_QUAD});
     }
 
     _flash() {
@@ -445,6 +581,7 @@ export class AppsBubble {
         this.actor.set_scale(this._targetScale(), this._targetScale());
         this._grid.set({rotation_angle_z: this._open ? 90 : 0, opacity: this._open ? 0 : 255});
         this._cross.set({rotation_angle_z: this._open ? 0 : -90, opacity: this._open ? 255 : 0});
+        this._time.opacity = this._open ? 0 : 255;
         this._light.opacity = 0;
     }
 

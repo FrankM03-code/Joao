@@ -13,12 +13,14 @@ import Shell from 'gi://Shell';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+import {RingTools} from './anillo/ringTools.js';
 import {CornerIndicator} from './privacidad/cornerIndicator.js';
 import {PrivacyMonitor} from './privacidad/privacyMonitor.js';
 import {forgetColors} from './notificaciones/bubbleLook.js';
 import {NotificationStore} from './notificaciones/notificationStore.js';
 import {TrayBridge} from './notificaciones/trayBridge.js';
 import {KeepAwake} from './sistema/keepAwake.js';
+import {NoteStore} from './sistema/taskStore.js';
 import {destroyNoticeSource} from './sistema/notice.js';
 import {SavedScenesStore} from './escenas/savedScenesStore.js';
 import {SavedScenesView} from './pantalla/savedScenesView.js';
@@ -69,8 +71,11 @@ export default class JoaoExtension extends Extension {
         this._privacyMonitor = new PrivacyMonitor();
         this._notificationStore = new NotificationStore();
         this._store = new SavedScenesStore();
+        // Before the page and the strip: the panel shows the pinned note, the ring writes it.
+        this._notes = new NoteStore();
         this._restorer = new SceneRestorer(this._settings, this._store);
         this._view = new SavedScenesView(this._settings, this._store, this._restorer);
+        this._ringTools = new RingTools(this._settings, this._view);
         this._escenas = new EscenasMode(this._settings, this._view);
         this._topBar = new TopBar(this._settings, section => this._view.showSection(section));
         this._privacy = new CornerIndicator(this._settings, this._topBar, this._view);
@@ -133,6 +138,8 @@ export default class JoaoExtension extends Extension {
         this._privacy = null;
         this._topBar.destroy();
         this._topBar = null;
+        this._ringTools.destroy();
+        this._ringTools = null;
         this._view.destroy();
         this._view = null;
         this._restorer.destroy();
@@ -141,6 +148,8 @@ export default class JoaoExtension extends Extension {
         this._escenas = null;
         this._store.destroy();
         this._store = null;
+        this._notes.destroy();
+        this._notes = null;
         this._notificationStore.destroy();
         this._notificationStore = null;
         this._privacyMonitor.destroy();

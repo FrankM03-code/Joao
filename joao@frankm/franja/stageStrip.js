@@ -24,6 +24,7 @@ import {StripVolume} from './stripVolume.js';
 
 const ANIMATION_TIME = 200;
 const LEAVE_DELAY = 500;
+const DROP_DWELL = 400;         // ms resting on "Nueva escena" before a moved window may drop there
 const DRAWER_TIME = 260;        // leaving and coming back around the launcher page
 const DRAWER_SHIFT = 14;
 // The wheel outside the piles moves the list when there are more scenes than
@@ -639,6 +640,7 @@ export class StageStrip {
         if (!win || !MOVE_OPS.includes(op) || !this._manager.sceneOf(win))
             return;
         this._movingWindow = win;
+        this._dropSince = 0;
         this._sync();
         if (this._grabPollId)
             return;
@@ -648,7 +650,7 @@ export class StageStrip {
                 this._grabPollId = 0;
                 return GLib.SOURCE_REMOVE;
             }
-            this._highlightDrop(this._pointerOnDropZone());
+            this._highlightDrop(this._dropArmed());
             return GLib.SOURCE_CONTINUE;
         });
         this._grabPollId = id;
@@ -658,8 +660,9 @@ export class StageStrip {
     _onGrabEnd(win) {
         if (!this._movingWindow || win !== this._movingWindow)
             return;
-        const drop = this._pointerOnDropZone();
+        const drop = this._dropArmed();
         this._movingWindow = null;
+        this._dropSince = 0;
         this._highlightDrop(false);
         if (drop)
             this._manager.sendToStrip(win);
@@ -671,6 +674,18 @@ export class StageStrip {
             return false;
         const [x, y] = global.get_pointer();
         return this._addButton.containsPoint(x, y);
+    }
+
+    // The strip can sit on the edge toward another monitor: a window only passing over
+    // "Nueva escena" on its way there must not fall in. It takes resting on it a moment.
+    _dropArmed() {
+        if (!this._pointerOnDropZone()) {
+            this._dropSince = 0;
+            return false;
+        }
+        const now = GLib.get_monotonic_time() / 1000;
+        this._dropSince ||= now;
+        return now - this._dropSince >= DROP_DWELL;
     }
 
     _highlightDrop(on) {

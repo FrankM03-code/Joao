@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // What is in use, when the strip's bubble cannot say it (its border lights up, appsBubble.js): a
 // dot per device, at the top of the screen and over everything, fullscreen too, for when the strip is out of
-// sight or off. Hovering either one opens the tray of chips (tray.js).
+// sight or off. Hovering either one opens the card of what is in use (tray.js).
 import Atk from 'gi://Atk';
 import Clutter from 'gi://Clutter';
+import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
@@ -17,7 +18,8 @@ import {connectKeyPress} from '../escritorio/keyEvents.js';
 import {escenasStrip} from '../franja/escenasMode.js';
 import {Signals} from '../sistema/gnome.js';
 import {DEVICES, DEVICE_INFO, privacyMonitor} from './privacyMonitor.js';
-import {canCut, canGoTo, cut, cutIcon, cutLabel, goToApp, isMuted} from './stopActions.js';
+import {RING_ORDER} from './segmentRing.js';
+import {canCut, canGoTo, cut, goToApp, isMuted} from './stopActions.js';
 import {CompactTray} from './tray.js';
 
 const MARGIN = 16;
@@ -147,12 +149,8 @@ class JoaoCornerIndicator extends St.BoxLayout {
         return !this._view.visible && !Main.sessionMode.isLocked;
     }
 
-    get _emptyPill() {
-        return !!this._bubble && !!escenasStrip()?.appsBubble?.wantsEmptyPill;
-    }
-
     get _canTray() {
-        return this._free && (this._monitor.active.length > 0 || this._emptyPill);
+        return this._free && this._monitor.active.length > 0;
     }
 
     get _wantsTray() {
@@ -201,7 +199,7 @@ class JoaoCornerIndicator extends St.BoxLayout {
 
     _syncTray() {
         if (!this._canTray)
-            this._closeTray(false);
+            this._closeTray(this._tray.visible);
         else if (this._tray.visible)
             this._fillTray();
         else if (this._wantsTray)
@@ -276,16 +274,17 @@ class JoaoCornerIndicator extends St.BoxLayout {
         this._chipsMoved();
     }
 
-    // Towards the middle of the screen and centered with the bubble, whatever its hover scale.
+    // Towards the middle of the screen, its bottom level with the bubble's, whatever its hover scale.
     _besideBubble(monitor, width, height, gap, margin) {
         const [x, y] = this._bubble.get_transformed_position();
         const [w, h] = this._bubble.get_transformed_size();
         const centerX = x + w / 2;
         const centerY = y + h / 2;
         const half = this._bubble.width / 2;
+        const top = Math.min(centerY + half - height, monitor.y + monitor.height - height - margin);
         return [
             Math.round(this._towardsRight ? centerX + half + gap : centerX - half - gap - width),
-            Math.round(Math.min(centerY - height / 2, monitor.y + monitor.height - height - margin)),
+            Math.round(Math.max(monitor.y + margin, top)),
         ];
     }
 
@@ -369,34 +368,41 @@ class JoaoCornerIndicator extends St.BoxLayout {
     }
 
     _fillTray() {
-        this._tray.update(this._uses(), this._emptyPill);
+        this._tray.update(this._uses());
         this._placeLater();
     }
 
     _uses() {
-        return this._monitor.active.flatMap(device =>
+        return RING_ORDER.flatMap(device =>
             this._monitor.state[device].map(entry => this._use(device, entry)));
     }
 
-    // A click does what can be done; a camera cannot be cut, so there it goes to the app, as the
-    // secondary button always does.
+    // The stop button does what can be done (a camera cannot be cut: no button there); the row
+    // goes to the app.
     _use(device, entry) {
         const info = DEVICE_INFO[device];
         const go = canGoTo(entry) ? () => {
             this._closeTray(false);
             goToApp(entry);
         } : null;
-        const cuts = canCut(device, entry);
-        const label = cuts ? cutLabel(device, entry) : go && `Ir a ${entry.name}`;
+        const muted = device === 'microphone' && isMuted(entry);
+        const stopLabel = !canCut(device, entry) ? null
+            : device === 'screen' ? 'Detener pantalla'
+            : muted ? 'Reactivar micrófono' : 'Silenciar micrófono';
+        const appIcon = entry.app?.get_icon() ?? null;
         return {
             key: `${device}:${entry.appId ?? entry.name}`,
             device,
+            title: info.short,
             app: entry.name,
-            icon: device === 'microphone' && isMuted(entry) ? 'microphone-disabled-symbolic' : info.icon,
-            actionIcon: cuts ? cutIcon(device, entry) : go && 'go-next-symbolic',
-            description: [`${info.name}: ${entry.name}`, label].filter(Boolean).join('. '),
-            onAction: cuts ? () => cut(device, entry) : go,
-            onSecondary: go,
+            gicon: appIcon ?? new Gio.ThemedIcon({name: info.icon}),
+            appIcon: !!appIcon,
+            since: entry.since,
+            muted,
+            stopLabel,
+            description: [`${info.short}: ${entry.name}`, stopLabel, go && `Ir a ${entry.name}`].filter(Boolean).join('. '),
+            onStop: stopLabel ? () => cut(device, entry) : null,
+            onGo: go,
         };
     }
 

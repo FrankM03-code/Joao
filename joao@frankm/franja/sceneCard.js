@@ -37,15 +37,7 @@ export const CARD_PREVIEW_HEIGHT = PREVIEW_HEIGHT;
 // one (no server decorations) cut when the window is tall enough to spare it.
 function contentRect(win, frame) {
     const csd = !win.decorated;
-    let rect = frame;
-    if (!csd) {
-        try {
-            rect = win.frame_rect_to_client_rect(frame);
-        } catch (e) {
-            rect = frame;
-        }
-    }
-    let {x, y, width, height} = rect;
+    let {x, y, width, height} = csd ? frame : win.frame_rect_to_client_rect(frame);
     if (csd && height > HEADERBAR * 3) {
         y += HEADERBAR;
         height -= HEADERBAR;

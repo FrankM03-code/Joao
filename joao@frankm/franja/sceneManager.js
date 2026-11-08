@@ -4,6 +4,9 @@
 //
 // A scene is {id, windows: Meta.Window[], lastFocused, workspace, stamp, color}.
 // Every normal window of the primary monitor belongs to exactly one scene.
+// A window of another monitor is left out while it is in sight; minimized, it waits in the
+// strip as an "away" scene ({away: true}, on every workspace) and goes back to its own
+// monitor when opened, without touching the scene on stage.
 // Each workspace has at most one scene on stage; the others are minimized and
 // shown in the strip (in creation order). Signals: 'changed' (scenes or the one on stage
 // changed) and 'layout-changed' (a window of the stage moved, resized…).
@@ -23,13 +26,26 @@ const ATTENTION_SIGNALS = ['notify::demands-attention', 'notify::urgent'];
 const WINDOW_SIGNALS = ['position-changed', 'size-changed', 'notify::fullscreen',
     'notify::maximized-horizontally', 'notify::maximized-vertically'];
 
+// With workspaces only on the primary monitor, Mutter shows the windows of the other monitors
+// on all workspaces. A GNOME Shell restart on X11 (or changing which monitor is primary) can
+// leave that mark on a window that is now on the primary monitor: it stays out of every
+// scene, and if it was in the strip it stays minimized with no way back. On the primary
+// monitor that mark can only be such a leftover (or the window menu's "Always on Visible
+// Workspace", which João does not support there anyway).
+function unstickLeftover(win) {
+    if (win.get_window_type() === Meta.WindowType.NORMAL && !win.get_transient_for() &&
+        Meta.prefs_get_workspaces_only_on_primary() &&
+        win.get_monitor() === Main.layoutManager.primaryIndex && win.is_on_all_workspaces())
+        win.unstick();
+}
+
 export class SceneManager extends Signals.EventEmitter {
     constructor(settings) {
         super();
         this._settings = settings;
         this._scenes = [];
         this._active = new Map();          // Meta.Workspace -> scene
-        this._minimizedByUs = new Set();   // given back when Escenas is switched off
+        this._minimizedByUs = new Set();   // given back when the scene manager is switched off
         this._snapshots = new Map();       // Meta.Window -> {content, frame, buffer}
         this._places = new Map();          // Meta.Window -> its place before being arranged side by side
         this._windowIds = new Map();       // Meta.Window -> [signal ids]
@@ -37,6 +53,7 @@ export class SceneManager extends Signals.EventEmitter {
         this._useCount = 0;
         this._elsewhere = new WeakSet();   // windows left out because they are on another monitor
         this._broughtBack = new WeakMap(); // Meta.Window -> when someone else brought it back (ms)
+        this._awayIds = new Map();         // left-out Meta.Window -> [signal ids] (waiting to be minimized)
         this._pending = new Map();         // Meta.Window -> stop() while waiting for its first frame
         this._closing = new Map();         // Meta.Window -> stop() while waiting for it to close
         this._sources = new Set();
@@ -71,12 +88,16 @@ export class SceneManager extends Signals.EventEmitter {
         // everything is minimized, nothing is on stage and all go to the strip.
         const windows = display.list_all_windows()
             .sort((a, b) => a.get_user_time() - b.get_user_time());
-        for (const win of windows)
+        for (const win of windows) {
             this._addWindow(win, {activate: false});
+            // A minimized window of another monitor waits in the strip.
+            if (this._elsewhere.has(win) && win.minimized)
+                this._addAway(win);
+        }
         const focus = display.focus_window;
         for (const ws of new Set(this._scenes.map(s => s.workspace))) {
-            const own = this._scenes.filter(s => s.workspace === ws);
-            const visible = own.filter(s => s.windows.some(w => !w.minimized));
+            const own = this._scenes.filter(s => s.workspace === ws && !s.away);
+            const visible = own.filter(s => !s.away && s.windows.some(w => !w.minimized));
             const pick = visible.find(s => s.windows.includes(focus)) ?? visible.at(-1);
             if (pick)
                 this.activate(pick, {focus: false, animate: false});
@@ -114,6 +135,9 @@ export class SceneManager extends Signals.EventEmitter {
             win.set_icon_geometry(null);
         }
         this._windowIds.clear();
+        for (const [win, ids] of this._awayIds)
+            ids.forEach(id => win.disconnect(id));
+        this._awayIds.clear();
         // Give the user back the windows we hid.
         for (const win of this._minimizedByUs) {
             if (win.minimized)
@@ -143,7 +167,7 @@ export class SceneManager extends Signals.EventEmitter {
     // Scenes of the current workspace in creation order.
     getScenes() {
         const ws = global.workspace_manager.get_active_workspace();
-        return this._scenes.filter(s => s.workspace === ws);
+        return this._scenes.filter(s => s.workspace === ws || s.away);
     }
 
     getInactiveScenes() {
@@ -193,6 +217,10 @@ export class SceneManager extends Signals.EventEmitter {
     activate(scene, {focus = true, time = global.get_current_time(), animate = true, window = null, from = undefined} = {}) {
         if (!this._scenes.includes(scene))
             return;
+        if (scene.away) {
+            this._returnAway(scene, {focus, time, animate, window, from});
+            return;
+        }
         if (window && scene.windows.includes(window)) {
             scene.lastFocused = window;
             this._markUsed(window);
@@ -250,7 +278,7 @@ export class SceneManager extends Signals.EventEmitter {
             return;
         const own = scene.windows.filter(w => !w.get_transient_for());
         const app = this._appOf(own[0]);
-        if (!win || !own.includes(win) || own.length < 2 || this._activeOf(scene.workspace) === scene ||
+        if (scene.away || !win || !own.includes(win) || own.length < 2 || this._activeOf(scene.workspace) === scene ||
             !app || !own.every(w => this._appOf(w) === app)) {
             this.activate(scene, external ? {window: win, focus: false, animate: false} : {window: win});
             return;
@@ -432,14 +460,24 @@ export class SceneManager extends Signals.EventEmitter {
         }
         // Once the window is unmanaged its actor may be gone, and its signals with it.
         const stop = ({actorAlive = true} = {}) => {
-            if (actorAlive)
+            if (actorAlive && frameId)
                 actor.disconnect(frameId);
+            frameId = 0;
             win.disconnect(goneId);
             this._pending.delete(win);
         };
-        const frameId = actor.connect('first-frame', () => {
-            stop();
-            this._addWindow(win, {activate: true});
+        // Emitted while mutter paints: restacking there aborts gnome-shell on Wayland,
+        // so the scene is made right after the paint, before the next frame.
+        // 'unmanaged' stays connected until then: a window closed meanwhile is left alone.
+        let frameId = actor.connect('first-frame', () => {
+            actor.disconnect(frameId);
+            frameId = 0;
+            this._later(() => {
+                if (!this._pending.has(win))
+                    return;
+                stop();
+                this._addWindow(win, {activate: true});
+            }, GLib.PRIORITY_HIGH_IDLE);
         });
         // A window can be unmanaged before drawing anything.
         const goneId = win.connect('unmanaged', () => stop({actorAlive: false}));
@@ -449,13 +487,15 @@ export class SceneManager extends Signals.EventEmitter {
     _addWindow(win, {activate}) {
         if (this._windowIds.has(win) || win.get_window_type() !== Meta.WindowType.NORMAL)
             return;
+        unstickLeftover(win);
         // Dialog-like normal windows go with their parent.
         const parentScene = win.get_transient_for() ? this.sceneOf(win.get_transient_for()) : null;
         if (!parentScene && !this._eligible(win)) {
-            this._elsewhere.add(win);
+            this._leaveOut(win);
             return;
         }
         this._elsewhere.delete(win);
+        this._stopAway(win);
         this._watch(win);
         this._markUsed(win);
         if (parentScene) {
@@ -546,6 +586,7 @@ export class SceneManager extends Signals.EventEmitter {
     }
 
     _removeWindow(win) {
+        this._stopAway(win);
         this._windowIds.get(win)?.forEach(id => win.disconnect(id));
         this._windowIds.delete(win);
         this._minimizedByUs.delete(win);
@@ -569,6 +610,8 @@ export class SceneManager extends Signals.EventEmitter {
         // Not ours: only one known to be on another monitor comes in here. A window being created
         // also enters a monitor, before it is placed: that one waits for its first frame.
         if (!this._windowIds.has(win)) {
+            if (this._elsewhere.has(win))
+                unstickLeftover(win);
             if (this._elsewhere.has(win) && this._eligible(win))
                 this._addWindow(win, {activate: win.has_focus() || !this._activeOf(win.get_workspace())});
             return;
@@ -577,9 +620,13 @@ export class SceneManager extends Signals.EventEmitter {
         // workspace-changed) before 'unmanaged': moving it then aborts mutter.
         if (!win.get_workspace() && !win.is_on_all_workspaces())
             return;
+        unstickLeftover(win);
         const scene = this._scenes.find(s => s.windows.includes(win));
         const eligible = this._eligible(win);
         if (scene && eligible && scene.workspace === win.get_workspace())
+            return;
+        // Waiting in the strip for its own monitor.
+        if (scene?.away && !eligible)
             return;
         if (scene) {
             // It leaves a shared scene: the others share the room again and
@@ -596,12 +643,14 @@ export class SceneManager extends Signals.EventEmitter {
         } else {
             this._windowIds.get(win).forEach(id => win.disconnect(id));
             this._windowIds.delete(win);
-            this._elsewhere.add(win);
             this._snapshots.delete(win);
             this._used.delete(win);
             win.set_icon_geometry(null);
             if (this._minimizedByUs.delete(win) && win.minimized)
                 win.unminimize();
+            this._leaveOut(win);
+            if (win.minimized)
+                this._addAway(win);
         }
         this.emit('changed');
     }
@@ -652,7 +701,7 @@ export class SceneManager extends Signals.EventEmitter {
     _appSceneInStrip(app, workspace, except = null) {
         if (!app)
             return null;
-        return this._scenes.find(s => s !== except && s.workspace === workspace && s.windows.length &&
+        return this._scenes.find(s => s !== except && !s.away && s.workspace === workspace && s.windows.length &&
             this._activeOf(workspace) !== s && s.windows.every(w => this._appOf(w) === app)) ?? null;
     }
 
@@ -661,7 +710,8 @@ export class SceneManager extends Signals.EventEmitter {
     // them. Its windows are put side by
     // side the next time it goes on stage.
     _groupInStrip(scene) {
-        if (!this._scenes.includes(scene) || this._activeOf(scene.workspace) === scene || !scene.windows.length)
+        if (!this._scenes.includes(scene) || scene.away || this._activeOf(scene.workspace) === scene ||
+            !scene.windows.length)
             return;
         const app = this._appOf(scene.windows[0]);
         if (!app || !scene.windows.every(w => this._appOf(w) === app))
@@ -795,13 +845,76 @@ export class SceneManager extends Signals.EventEmitter {
         }
     }
 
+    // ---------- windows of other monitors ----------
+
+    // @win stays out of the scenes while in sight; minimized, it waits in the strip.
+    _leaveOut(win) {
+        this._elsewhere.add(win);
+        if (this._awayIds.has(win) || win.get_window_type() !== Meta.WindowType.NORMAL ||
+            win.get_transient_for() || win.skip_taskbar)
+            return;
+        this._awayIds.set(win, [
+            win.connect('notify::minimized', () => {
+                if (win.minimized && !this._busy && !this._windowIds.has(win))
+                    this._addAway(win);
+            }),
+            win.connect('unmanaged', () => this._stopAway(win)),
+        ]);
+    }
+
+    _stopAway(win) {
+        this._awayIds.get(win)?.forEach(id => win.disconnect(id));
+        this._awayIds.delete(win);
+    }
+
+    _addAway(win) {
+        if (this._windowIds.has(win) || win.get_window_type() !== Meta.WindowType.NORMAL ||
+            win.get_transient_for() || win.skip_taskbar)
+            return;
+        this._stopAway(win);
+        this._takeSnapshot(win);
+        this._watch(win);
+        this._markUsed(win);
+        const scene = this._newScene(win);
+        scene.away = true;
+        this.emit('changed');
+    }
+
+    // Opened from the strip (or brought back by Alt+Tab): back on its own monitor; the
+    // scene on stage stays where it is.
+    _returnAway(scene, {focus, time, animate, window, from}) {
+        from = !animate ? null : from !== undefined ? from : this.thumbnailRect?.(scene, {leaving: false});
+        const wins = scene.windows.slice();
+        this._busy++;
+        try {
+            this._drop(scene);
+            for (const win of wins) {
+                this._windowIds.get(win)?.forEach(id => win.disconnect(id));
+                this._windowIds.delete(win);
+                this._snapshots.delete(win);
+                this._minimizedByUs.delete(win);
+                if (win.minimized) {
+                    this._setIconGeometry(win, from);
+                    win.unminimize();
+                }
+                this._leaveOut(win);
+            }
+            const target = window && wins.includes(window) ? window : scene.lastFocused ?? wins[0];
+            if (focus && target)
+                Main.activateWindow(target, time);
+        } finally {
+            this._busy--;
+        }
+        this.emit('changed');
+    }
+
     _activeOf(ws) {
         const scene = this._active.get(ws);
         return scene && this._scenes.includes(scene) ? scene : null;
     }
 
-    _later(fn) {
-        const id = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+    _later(fn, priority = GLib.PRIORITY_DEFAULT_IDLE) {
+        const id = GLib.idle_add(priority, () => {
             this._sources.delete(id);
             fn();
             return GLib.SOURCE_REMOVE;

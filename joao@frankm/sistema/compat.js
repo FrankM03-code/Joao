@@ -28,35 +28,6 @@ export const grabHoldsKeyboard = grab => (MAJOR < 50
     ? (grab.get_seat_state() & Clutter.GrabState.KEYBOARD) !== 0
     : !grab.is_revoked());
 
-// A vertical drag on @actor. @onMove(dy) returns true when the gesture is over.
-// Clutter.PanAction became Clutter.PanGesture in 49.
-export function addVerticalDrag(actor, onMove) {
-    let done = false;
-    if (MAJOR < 49) {
-        const pan = new Clutter.PanAction({pan_axis: Clutter.PanAxis.Y_AXIS});
-        pan.connect('gesture-begin', () => {
-            done = false;
-            return true;
-        });
-        pan.connect('pan', action => {
-            if (!done)
-                done = onMove(action.get_motion_delta(0)[2]);
-            return false;
-        });
-        actor.add_action(pan);
-        return;
-    }
-    const pan = new Clutter.PanGesture({pan_axis: Clutter.PanAxis.Y});
-    pan.connect('recognize', () => {
-        done = false;
-    });
-    pan.connect('pan-update', gesture => {
-        if (!done)
-            done = onMove(gesture.get_delta_abs().get_y());
-    });
-    actor.add_action(pan);
-}
-
 // ---------- chrome: the input region went away with X11 in 50 ----------
 
 export const CHROME_NO_INPUT = MAJOR < 50 ? {affectsInputRegion: false} : {};

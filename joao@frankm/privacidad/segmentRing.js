@@ -13,7 +13,7 @@ import St from 'gi://St';
 export const RING_ORDER = ['screen', 'microphone', 'camera'];
 // The ring's timer (anillo/) is one more segment, last, lilac; it is as long as what is left.
 const ORDER = [...RING_ORDER, 'timer'];
-export const DEVICE_RGB = {
+const DEVICE_RGB = {
     screen: [0xe2, 0x4b, 0x4a],
     microphone: [0xef, 0x9f, 0x27],
     camera: [0x1d, 0x9e, 0x75],
@@ -67,7 +67,7 @@ class JoaoSegmentRing extends St.DrawingArea {
 
     // fraction: what is left of the timer (1 → 0), or null when there is none.
     setTimer(fraction) {
-        const on = fraction !== null && fraction !== undefined;
+        const on = fraction != null;
         this._timerFraction = on ? Math.max(0, Math.min(1, fraction)) : this._timerFraction;
         const changed = this._targets.timer !== (on ? 1 : 0);
         this._targets.timer = on ? 1 : 0;

@@ -17,7 +17,7 @@ const TIME = /^\d{2}:\d{2}$/;
 const now = () => GLib.DateTime.new_now_local().format_iso8601();
 
 const validTask = t => t && typeof t.id === 'string' && typeof t.title === 'string' && DAY.test(t.date) &&
-    (t.time === null || t.time === undefined || TIME.test(t.time));
+    (t.time == null || TIME.test(t.time));
 
 export const TaskStore = GObject.registerClass({
     Signals: {changed: {}},

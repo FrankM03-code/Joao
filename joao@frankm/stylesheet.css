@@ -684,43 +684,6 @@
     color: #ff6b6b;
 }
 
-.pb-count {
-    border-radius: 22px;
-}
-
-.pb-progress {
-    background-color: rgba(255, 138, 128, 0.35);
-    border-radius: 22px;
-}
-
-.pb-count-row {
-    padding: 0 12px 0 18px;
-    spacing: 10px;
-}
-
-.pb-count-label {
-    font-size: 11pt;
-    font-weight: 500;
-    color: #ffffff;
-}
-
-.pb-cancel {
-    padding: 8px 14px;
-    border-radius: 12px;
-    font-size: 10pt;
-    font-weight: 600;
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.14);
-}
-
-.pb-cancel:hover {
-    background-color: rgba(255, 255, 255, 0.24);
-}
-
-.pb-cancel:focus {
-    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5);
-}
-
 /* ========== Scenes: the strip (franja/) ========== */
 /* ---------- the strip panel (tones: propia = the dark glass; clara = light) ---------- */
 .escenas-strip {

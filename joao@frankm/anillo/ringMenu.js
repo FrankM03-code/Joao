@@ -20,7 +20,7 @@ const ROW_DELAYS = [180, 260, 340];
 const LEAVE = 150;
 
 // '<Super><Alt>n' → 'Super+Alt+N'.
-export function prettyAccel(accel) {
+function prettyAccel(accel) {
     if (!accel)
         return '';
     const mods = (accel.match(/<([^>]+)>/g) ?? []).map(m => MODS[m.slice(1, -1).toLowerCase()] ?? m.slice(1, -1));
@@ -28,7 +28,7 @@ export function prettyAccel(accel) {
     return [...mods, key.length === 1 ? key.toUpperCase() : key].join('+');
 }
 
-export const TOOLS = [
+const TOOLS = [
     {id: 'note', title: 'Nota rápida', sub: 'Se fija en el panel', icon: 'document-edit-symbolic', key: 'ring-note-shortcut'},
     {id: 'clipboard', title: 'Portapapeles', sub: '25 copias recientes', icon: 'edit-paste-symbolic', key: 'ring-clipboard-shortcut'},
     {id: 'timer', title: 'Temporizador', sub: 'En el anillo', icon: 'alarm-symbolic', key: 'ring-timer-shortcut'},

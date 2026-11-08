@@ -275,9 +275,7 @@ export class RingTools {
         }, this);
         this._alarm = notification;
         source.addNotification(notification);
-        try {
-            global.display.get_sound_player().play_from_theme('alarm-clock-elapsed', 'Temporizador', null);
-        } catch {}
+        global.display.get_sound_player().play_from_theme('alarm-clock-elapsed', 'Temporizador', null);
         this._syncRing();
         this._bubble?.alarm();
         this._showCard(notification, body, sub);

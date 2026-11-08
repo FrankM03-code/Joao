@@ -243,7 +243,7 @@ export class StageStrip {
         this._order = inactive;
         this._max = max;
         let shown;
-        if (this._windowStart !== null && this._windowStart !== undefined && inactive.length > max) {
+        if (this._windowStart != null && inactive.length > max) {
             // Scrolled: a run of the list in its fixed order.
             this._windowStart = Math.max(0, Math.min(this._windowStart, inactive.length - max));
             shown = inactive.slice(this._windowStart, this._windowStart + max);
@@ -329,7 +329,7 @@ export class StageStrip {
         if (order.length <= max)
             return false;
         let start = this._windowStart;
-        if (start === null || start === undefined) {
+        if (start == null) {
             // From the most recent ones: the run that holds most of them.
             const shown = new Set(this.thumbnails.map(t => t.scene));
             start = 0;
@@ -363,7 +363,7 @@ export class StageStrip {
             this._sources.delete(this._scrollResetId);
             this._scrollResetId = 0;
         }
-        if (this.actor.hover || this._windowStart === null || this._windowStart === undefined)
+        if (this.actor.hover || this._windowStart == null)
             return;
         const id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, SCROLL_RESET, () => {
             this._sources.delete(id);

@@ -9,7 +9,7 @@ const SPRING = Clutter.AnimationMode.EASE_OUT_BACK;
 const SOFT = Clutter.AnimationMode.EASE_OUT_QUAD;
 const SOFT_BOTH = Clutter.AnimationMode.EASE_IN_OUT_QUAD;
 
-export const OUTSIDE = -56;
+const OUTSIDE = -56;
 export const DOT = 40;
 export const TOP = 14;
 

@@ -79,12 +79,8 @@ function iconColor(app) {
 }
 
 function accentColor() {
-    try {
-        const name = new Gio.Settings({schema_id: 'org.gnome.desktop.interface'}).get_string('accent-color');
-        return ACCENT[name] ?? ACCENT.blue;
-    } catch {
-        return ACCENT.blue;
-    }
+    const name = new Gio.Settings({schema_id: 'org.gnome.desktop.interface'}).get_string('accent-color');
+    return ACCENT[name] ?? ACCENT.blue;
 }
 
 export function appColor(notification) {

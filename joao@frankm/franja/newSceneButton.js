@@ -17,7 +17,6 @@ import * as DND from 'resource:///org/gnome/shell/ui/dnd.js';
 
 const LABEL = 'Nueva escena';
 const DROP_LABEL = 'Suelta para crear escena';
-const FALLBACK_ACCENT = [0x35 / 255, 0x84 / 255, 0xe4 / 255];
 
 export const NewSceneButton = GObject.registerClass(
 class NewSceneButton extends St.Button {
@@ -81,12 +80,8 @@ class NewSceneButton extends St.Button {
 
     // The system accent color as [r, g, b] in 0–1.
     _accent() {
-        try {
-            const [color] = this._themeContext.get_accent_color();
-            return [color.red / 255, color.green / 255, color.blue / 255];
-        } catch (e) {
-            return FALLBACK_ACCENT;
-        }
+        const [color] = this._themeContext.get_accent_color();
+        return [color.red / 255, color.green / 255, color.blue / 255];
     }
 
     get dropping() {

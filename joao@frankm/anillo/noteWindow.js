@@ -24,7 +24,7 @@ const COPIED = 1200;
 const DAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 // "hoy", "Ayer", "Mié 4", "12 oct" for older ones.
-export function noteDate(iso) {
+function noteDate(iso) {
     const date = iso ? GLib.DateTime.new_from_iso8601(iso, null) : null;
     if (!date)
         return '';

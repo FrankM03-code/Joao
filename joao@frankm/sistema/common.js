@@ -74,4 +74,3 @@ export function launchCalendar(date = null) {
     }
 }
 
-export const hasCalendar = () => !!Gio.AppInfo.get_default_for_type('text/calendar', false);

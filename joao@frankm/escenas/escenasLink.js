@@ -79,12 +79,12 @@ export function captureWindows() {
     });
 }
 
-// ---------- taking a new window before Escenas acts on it ----------
-// Left alone, Escenas gives a new window a scene of its own and sends the one on stage to the
+// ---------- taking a new window before the scene manager acts on it ----------
+// Left alone, the scene manager gives a new window a scene of its own and sends the one on stage to the
 // strip. For a window that belongs on stage that means everything flying away and coming back,
 // so a restoration takes such windows first.
 
-// Call it when the window is created. True: Escenas will not act on it until it is told to.
+// Call it when the window is created. True: the scene manager will not act on it until it is told to.
 export function takeNewWindow(win) {
     const release = escenasManager()?._pending.get(win);
     release?.();
@@ -94,7 +94,7 @@ export function takeNewWindow(win) {
 // A taken window that has not drawn yet goes back to the normal path.
 export const returnNewWindow = win => escenasManager()?._onWindowCreated(win);
 
-// A taken window that has drawn, and is not for the stage: what Escenas would have done.
+// A taken window that has drawn, and is not for the stage: what the scene manager would have done.
 export const passDrawnWindow = win => escenasManager()?._addWindow(win, {activate: true});
 
 // A taken window whose scene the user has left meanwhile waits in the strip.

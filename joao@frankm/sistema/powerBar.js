@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Frank Molina
 // SPDX-License-Identifier: GPL-2.0-or-later
-// Foot of the panel: one bar with three states in the same space.
-//   main:      Ajustes, Captura, Grabar, Bloquear, Energía
-//   power:     back, Suspender, Hibernar, Reiniciar, Salir, Apagar
-//   countdown: Reiniciar, Salir and Apagar wait 10 s with a Cancelar button
-// It goes back to main when it stops being on screen, which also cancels a countdown.
+// Foot of the panel: one bar with two states in the same space.
+//   main:  Ajustes, Captura, Grabar, Bloquear, Energía
+//   power: back, Suspender, Hibernar, Reiniciar, Salir, Apagar
+// Reiniciar, Salir and Apagar act at once: no countdown and no GNOME dialog, unless an app has
+// unsaved work. It goes back to main when it stops being on screen.
 import Clutter from 'gi://Clutter';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
@@ -23,25 +23,21 @@ const warn = message => console.warn(`João: ${message}`);
 
 const MODE_SCREENSHOT = 0;
 const MODE_SCREENCAST = 1;
-const LOGOUT_ASK = 0;
 const LOGOUT_NO_DIALOG = 1;     // an app with unsaved work still stops it
-const COUNTDOWN_SECONDS = 10;
 const SKIP_WINDOW_SECONDS = 5;
 const SLIDE = 40;
 const DURATION = 450;
 const DIALOG_PATH = '/org/gnome/SessionManager/EndSessionDialog';
 const DIALOG_IFACE = 'org.gnome.SessionManager.EndSessionDialog';
 
-const MAIN = 0, POWER = 1, COUNTDOWN = 2;
+const MAIN = 0, POWER = 1;
 
-// What the search box runs: the page is closing, so there is no bar to count down on and
-// Reiniciar and Apagar use GNOME's dialog.
+// What GNOME itself does for these; Reiniciar, Salir and Apagar are João's own (no dialog).
 const SYSTEM_RUNS = {
     lock: 'activateLockScreen',
     suspend: 'activateSuspend',
-    restart: 'activateRestart',
-    poweroff: 'activatePowerOff',
 };
+const END_SESSION = new Set(['restart', 'logout', 'poweroff']);
 
 function callLogind(method, params, cancellable, done) {
     Gio.DBus.system.call('org.freedesktop.login1', '/org/freedesktop/login1',
@@ -55,8 +51,8 @@ function callSession(method, params, done) {
         Gio.DBusCallFlags.NONE, -1, null, done);
 }
 
-// gnome-session's Shutdown and Reboot always ask the shell for its dialog. The countdown already
-// asked, so the next request is confirmed at once, unless an app holds the session (unsaved work):
+// gnome-session's Shutdown and Reboot always ask the shell for its dialog. The click was the
+// answer, so the next request is confirmed at once, unless an app holds the session (unsaved work):
 // then the dialog shows, naming it. Returns what undoes this if the request never comes.
 function skipNextDialog(signal) {
     const proto = EndSessionDialog.prototype;
@@ -101,16 +97,13 @@ class JoaoPowerBar extends St.Widget {
         this._closeNow = closeNow;
         this._actions = SystemActions.getDefault();
         this._state = MAIN;
-        this._countdownId = 0;
         this._recordingId = 0;
         this.buttons = {};
 
         this._buildMain();
         this._buildPower();
-        this._buildCountdown();
-        this._layers = [this._mainLayer, this._powerLayer, this._countdownLayer];
+        this._layers = [this._mainLayer, this._powerLayer];
         this._powerLayer.hide();
-        this._countdownLayer.hide();
 
         this._bindAvailability();
         this._checkHibernate();
@@ -141,31 +134,9 @@ class JoaoPowerBar extends St.Widget {
         layer.add_child(back);
         layer.add_child(this._button('suspend', 'weather-clear-night-symbolic', 'Suspender', () => this.run('suspend'), 'pb-flex'));
         layer.add_child(this._button('hibernate', 'drive-harddisk-symbolic', 'Hibernar', () => this.run('hibernate'), 'pb-flex'));
-        layer.add_child(this._button('restart', 'view-refresh-symbolic', 'Reiniciar', () => this._startCountdown('restart'), 'pb-flex'));
-        layer.add_child(this._button('logout', 'system-log-out-symbolic', 'Salir', () => this._startCountdown('logout'), 'pb-flex'));
-        layer.add_child(this._button('poweroff', 'system-shutdown-symbolic', 'Apagar', () => this._startCountdown('poweroff'), 'pb-flex pb-danger'));
-    }
-
-    _buildCountdown() {
-        const layer = this._countdownLayer = new St.Widget({
-            style_class: 'pb-count',
-            layout_manager: new Clutter.BinLayout(),
-            x_expand: true,
-        });
-        this.add_child(layer);
-        // In a fixed layout, so that it empties towards its left edge.
-        const track = new St.Widget({x_expand: true});
-        this._progress = new St.Widget({style_class: 'pb-progress'});
-        track.add_child(this._progress);
-        layer.add_child(track);
-
-        const row = new St.BoxLayout({style_class: 'pb-count-row', x_expand: true, y_align: Clutter.ActorAlign.CENTER});
-        this._countLabel = new St.Label({style_class: 'pb-count-label', x_expand: true, y_align: Clutter.ActorAlign.CENTER});
-        this.buttons.cancel = new St.Button({style_class: 'pb-cancel', label: 'Cancelar', can_focus: true});
-        this.buttons.cancel.connect('clicked', () => this._cancelCountdown());
-        row.add_child(this._countLabel);
-        row.add_child(this.buttons.cancel);
-        layer.add_child(row);
+        layer.add_child(this._button('restart', 'view-refresh-symbolic', 'Reiniciar', () => this.run('restart'), 'pb-flex'));
+        layer.add_child(this._button('logout', 'system-log-out-symbolic', 'Salir', () => this.run('logout'), 'pb-flex'));
+        layer.add_child(this._button('poweroff', 'system-shutdown-symbolic', 'Apagar', () => this.run('poweroff'), 'pb-flex pb-danger'));
     }
 
     _layer() {
@@ -240,8 +211,7 @@ class JoaoPowerBar extends St.Widget {
 
         from.remove_all_transitions();
         from.ease({
-            translation_x: state === COUNTDOWN ? 0 : (forward ? -SLIDE : SLIDE),
-            translation_y: state === COUNTDOWN ? -20 : 0,
+            translation_x: forward ? -SLIDE : SLIDE,
             opacity: 0,
             duration: DURATION * 0.6,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
@@ -250,8 +220,7 @@ class JoaoPowerBar extends St.Widget {
 
         to.remove_all_transitions();
         to.set({
-            translation_x: state === COUNTDOWN ? 0 : (forward ? SLIDE : -SLIDE),
-            translation_y: state === COUNTDOWN ? 20 : 0,
+            translation_x: forward ? SLIDE : -SLIDE,
             opacity: 0,
         });
         to.show();
@@ -287,13 +256,11 @@ class JoaoPowerBar extends St.Widget {
         const target = {
             [MAIN]: this.buttons.power,
             [POWER]: this.buttons.back,
-            [COUNTDOWN]: this.buttons.cancel,
         }[state];
         target.grab_key_focus();
     }
 
     resetState() {
-        this._stopCountdown();
         this._layers.forEach((layer, i) => {
             layer.remove_all_transitions();
             layer.set({translation_x: 0, translation_y: 0, opacity: 255, visible: i === MAIN});
@@ -358,55 +325,9 @@ class JoaoPowerBar extends St.Widget {
         this._recordingId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, tick);
     }
 
-    // ---------- countdown ----------
-
-    _startCountdown(action) {
-        this._countdownAction = action;
-        this._remaining = COUNTDOWN_SECONDS;
-        this._updateCountLabel();
-        this._go(COUNTDOWN);
-
-        this._progress.remove_all_transitions();
-        this._progress.set_size(this.width, this.height);
-        this._progress.ease({
-            width: 0,
-            duration: COUNTDOWN_SECONDS * 1000,
-            mode: Clutter.AnimationMode.LINEAR,
-        });
-        this._countdownId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
-            this._remaining--;
-            if (this._remaining > 0) {
-                this._updateCountLabel();
-                return GLib.SOURCE_CONTINUE;
-            }
-            this._countdownId = 0;
-            this._closeAndReset();
-            this.activateEndSession(action);
-            return GLib.SOURCE_REMOVE;
-        });
-    }
-
-    _updateCountLabel() {
-        const verb = {poweroff: 'Apagando', restart: 'Reiniciando', logout: 'Cerrando sesión'}[this._countdownAction];
-        this._countLabel.text = `${verb} en ${this._remaining} s`;
-    }
-
-    _stopCountdown() {
-        if (this._countdownId)
-            GLib.source_remove(this._countdownId);
-        this._countdownId = 0;
-        this._progress.remove_all_transitions();
-    }
-
-    _cancelCountdown() {
-        this._stopCountdown();
-        if (this._state === COUNTDOWN)
-            this._go(POWER);
-    }
-
     // ---------- actions ----------
 
-    // The countdown was the confirmation: no dialog after it.
+    // The click was the confirmation: no dialog after it.
     activateEndSession(action) {
         if (action === 'logout') {
             this.activateLogout(LOGOUT_NO_DIALOG);
@@ -459,8 +380,8 @@ class JoaoPowerBar extends St.Widget {
             launchSettings();
         else if (id === 'hibernate')
             this.activateHibernate();
-        else if (id === 'logout')
-            this.activateLogout(LOGOUT_ASK);
+        else if (END_SESSION.has(id))
+            this.activateEndSession(id);
         else
             this._actions[SYSTEM_RUNS[id]]();
     }
@@ -468,7 +389,6 @@ class JoaoPowerBar extends St.Widget {
     _onDestroy() {
         this.disconnect(this._mappedId);
         this._hibernateCheck.cancel();
-        this._stopCountdown();
         if (this._recordingId)
             GLib.source_remove(this._recordingId);
         this._recordingId = 0;

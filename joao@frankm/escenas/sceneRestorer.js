@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Frank Molina
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Opens a saved scene: reuses windows already open, launches what is missing, puts every
-// window in its place and, with Escenas on, gathers them into one scene on stage.
+// window in its place and, with the scene manager on, gathers them into one scene on stage.
 //
 // Every window goes straight to its own place the moment it is drawn and joins the scene on
 // stage, so what is already placed never moves and nothing passes through the strip.
@@ -37,8 +37,11 @@ const rectOf = win => {
 };
 const sameRect = (a, b) => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 
-// Runs fn when the window is drawn and has real geometry: at once with @now, otherwise
-// after Escenas has seen it.
+// Runs fn when the window is drawn and has real geometry: right after that paint with @now,
+// otherwise after the scene manager has seen it.
+// 'first-frame' is emitted while mutter is painting: raising, moving or activating a window
+// there aborts gnome-shell on Wayland (frame_in_progress assertion). So even @now waits
+// for the paint to end, with a high priority idle that still runs before the next frame.
 function whenDrawn(win, sources, fn, {now = false, onGone = null} = {}) {
     const idle = () => {
         const id = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
@@ -64,11 +67,16 @@ function whenDrawn(win, sources, fn, {now = false, onGone = null} = {}) {
         frameId = goneId = 0;
     };
     frameId = actor.connect('first-frame', () => {
-        stop();
-        if (now)
+        actor.disconnect(frameId);
+        frameId = 0;
+        // 'unmanaged' stays connected until fn runs: a window closed meanwhile is not touched.
+        const id = GLib.idle_add(now ? GLib.PRIORITY_HIGH_IDLE : GLib.PRIORITY_DEFAULT_IDLE, () => {
+            sources.delete(id);
+            stop();
             fn();
-        else
-            idle();
+            return GLib.SOURCE_REMOVE;
+        });
+        sources.add(id);
     });
     goneId = win.connect('unmanaged', () => {
         stop({actorAlive: false});
@@ -99,11 +107,11 @@ class Restoration {
         this._moved = new Map();     // Meta.Window -> geometry handler ids
         this._corrections = new Map();   // Meta.Window -> how many times it was put back
         this._held = new Set();      // the user took these with the mouse: theirs from now on
-        this._taken = new Set();     // taken from Escenas, not drawn yet
+        this._taken = new Set();     // taken from the scene manager, not drawn yet
         this._extras = [];           // {win, rect}: windows the apps opened beyond the saved ones
         this._failed = new Set();
         this._apps = new Map();      // appId -> {waiting, nextAt}
-        this._stage = null;          // the Escenas scene this restoration is building
+        this._stage = null;          // the the scene manager scene this restoration is building
         this._presented = false;
 
         this._monitor = pointerMonitor();
@@ -354,7 +362,7 @@ class Restoration {
         return !!manager && !!this._stage && manager.activeScene !== this._stage;
     }
 
-    // A window taken from Escenas enters the scene on stage without disturbing it.
+    // A window taken from the scene manager enters the scene on stage without disturbing it.
     _join(win) {
         const manager = escenasManager();
         if (this._userLeft) {
@@ -429,7 +437,7 @@ class Restoration {
     }
 
     // One scene on stage holding all of this restoration's windows: for windows that were
-    // open already or that could not be taken from Escenas when they appeared.
+    // open already or that could not be taken from the scene manager when they appeared.
     _gather() {
         const manager = escenasManager();
         if (!manager || this._userLeft)

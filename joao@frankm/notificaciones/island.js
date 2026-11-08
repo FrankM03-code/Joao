@@ -19,7 +19,6 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import {pointerMonitor} from '../escenas/escenasLink.js';
 import {connectKeyPress} from '../escritorio/keyEvents.js';
-import {addVerticalDrag} from '../sistema/compat.js';
 import {RoundedCorners} from '../franja/sceneThumbnail.js';
 import {Signals} from '../sistema/gnome.js';
 import {DOT, IslandAnimator, TOP} from './islandAnimator.js';
@@ -114,15 +113,31 @@ export const Island = GObject.registerClass({
         this._syncFace();
     }
 
+    // Followed by hand: Clutter's pan gestures never start on a St.Button, which takes the
+    // pointer for itself on press.
     _addSwipe() {
-        let moved = 0;
-        addVerticalDrag(this._pill, delta => {
-            moved += delta;
-            if (moved > -SWIPE_AWAY * scaleFactor())
-                return false;
-            moved = 0;
-            this.emit('dismiss');
-            return true;
+        let startY = null;
+        this._pill.connect('event', (pill, event) => {
+            switch (event.type()) {
+            case Clutter.EventType.BUTTON_PRESS:
+            case Clutter.EventType.TOUCH_BEGIN:
+                startY = event.get_coords()[1];
+                break;
+            case Clutter.EventType.MOTION:
+            case Clutter.EventType.TOUCH_UPDATE:
+                if (startY !== null && startY - event.get_coords()[1] >= SWIPE_AWAY * scaleFactor()) {
+                    startY = null;
+                    pill.fake_release();    // no click when the finger lifts
+                    this.emit('dismiss');
+                }
+                break;
+            case Clutter.EventType.BUTTON_RELEASE:
+            case Clutter.EventType.TOUCH_END:
+            case Clutter.EventType.TOUCH_CANCEL:
+                startY = null;
+                break;
+            }
+            return Clutter.EVENT_PROPAGATE;
         });
     }
 

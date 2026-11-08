@@ -29,7 +29,7 @@ GNOME Shell 48, 49, 50 o 51.
 Con el paquete `.zip` (descárgalo de [Releases](https://github.com/FrankM03-code/Joao/releases/latest)):
 
 ```sh
-gnome-extensions install --force Joao-4.6.shell-extension.zip
+gnome-extensions install --force Joao-4.7.shell-extension.zip
 ```
 
 Desde este repositorio:

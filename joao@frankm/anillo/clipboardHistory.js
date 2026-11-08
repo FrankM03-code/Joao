@@ -24,7 +24,7 @@ const CB = St.ClipboardType.CLIPBOARD;
 const now = () => Math.floor(GLib.get_real_time() / 1e6);
 
 // What a text is: a colour, a link, a command or just text.
-export function kindOf(text) {
+function kindOf(text) {
     const t = text.trim();
     if (/^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(t))
         return 'color';
@@ -34,8 +34,6 @@ export function kindOf(text) {
         return 'command';
     return 'text';
 }
-
-export const KIND_NAMES = {text: 'Texto', command: 'Comando', color: 'Color', link: 'Enlace', image: 'Imagen'};
 
 export const ClipboardHistory = GObject.registerClass({
     Signals: {changed: {}},

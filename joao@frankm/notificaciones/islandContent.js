@@ -15,7 +15,7 @@ import {RoundedCorners} from '../franja/sceneThumbnail.js';
 import {plainBody} from '../sistema/notifications.js';
 import {hasPreview, sourceIcon, sourceName} from './sourceLook.js';
 
-export const PILL_MAX = 360;
+const PILL_MAX = 360;
 const CARD_WIDTH = 380;
 const CARD_PADDING = 16;
 const PREVIEW_HEIGHT = 134;

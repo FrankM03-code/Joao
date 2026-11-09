@@ -16,7 +16,6 @@ const SETTINGS = [
     {id: 'profile', name: 'Modo de energía', icon: 'power-profile-balanced-symbolic', words: ['energia', 'modo de energia', 'rendimiento', 'ahorro']},
     {id: 'lock', name: 'Bloquear', icon: 'system-lock-screen-symbolic', words: ['bloquear'], action: true},
     {id: 'suspend', name: 'Suspender', icon: 'weather-clear-night-symbolic', words: ['suspender'], action: true},
-    {id: 'hibernate', name: 'Hibernar', icon: 'drive-harddisk-symbolic', words: ['hibernar'], action: true},
     {id: 'restart', name: 'Reiniciar', icon: 'view-refresh-symbolic', words: ['reiniciar'], action: true},
     {id: 'poweroff', name: 'Apagar', icon: 'system-shutdown-symbolic', words: ['apagar'], action: true},
     {id: 'logout', name: 'Cerrar sesión', icon: 'system-log-out-symbolic', words: ['cerrar sesion', 'salir'], action: true},

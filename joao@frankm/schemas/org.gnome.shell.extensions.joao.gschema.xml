@@ -270,5 +270,10 @@
       <summary>Guardar las últimas copias del portapapeles</summary>
       <description>Al apagarlo se borran las recientes; las fijadas se quedan.</description>
     </key>
+    <key name="reopen-after-poweroff" type="b">
+      <default>false</default>
+      <summary>Volver a abrir los programas al encender</summary>
+      <description>Apagar hiberna el equipo: se ve como un apagado normal, pero al encender todo está como se dejó. Solo si el sistema puede hibernar.</description>
+    </key>
   </schema>
 </schemalist>

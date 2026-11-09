@@ -607,9 +607,9 @@
     border-color: -st-accent-color;
 }
 
-/* The foot of the panel: one bar, three states (sistema/powerBar.js) */
+/* The foot of the panel: one bar, two states (sistema/powerBar.js) */
 .pb-bar {
-    height: 68px;
+    min-height: 68px;
     border-radius: 22px;
     background-color: rgba(0, 0, 0, 0.18);
 }
@@ -617,6 +617,45 @@
 .pb-layer {
     padding: 6px;
     spacing: 2px;
+}
+
+.pb-row {
+    spacing: 2px;
+}
+
+/* "Volver a abrir los programas al encender" (sistema/reopenAfterPowerOff.js) */
+.pb-reopen {
+    margin-bottom: 4px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    background-color: rgba(255, 255, 255, 0.06);
+    spacing: 2px;
+}
+
+.pb-reopen .check-box {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.joao-reopen-note {
+    margin-left: 36px;
+    font-size: 9pt;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.joao-reopen-dialog {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background-color: #2e2e32;
+    spacing: 4px;
+}
+
+.joao-reopen-dialog .check-box {
+    font-weight: 500;
+}
+
+.joao-reopen-dialog .joao-reopen-note {
+    color: #b4b4ba;
 }
 
 .pb-btn {

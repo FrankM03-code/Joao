@@ -20,6 +20,7 @@ import {forgetColors} from './notificaciones/bubbleLook.js';
 import {NotificationStore} from './notificaciones/notificationStore.js';
 import {TrayBridge} from './notificaciones/trayBridge.js';
 import {KeepAwake} from './sistema/keepAwake.js';
+import {ReopenInDialog} from './sistema/reopenAfterPowerOff.js';
 import {NoteStore} from './sistema/taskStore.js';
 import {destroyNoticeSource} from './sistema/notice.js';
 import {SavedScenesStore} from './escenas/savedScenesStore.js';
@@ -68,6 +69,7 @@ export default class JoaoExtension extends Extension {
             [MUTTER_SCHEMA]: new Gio.Settings({schema_id: MUTTER_SCHEMA}),
         };
         this._keepAwake = new KeepAwake(this._settings);
+        this._reopenDialog = new ReopenInDialog(this._settings);
         this._privacyMonitor = new PrivacyMonitor();
         this._notificationStore = new NotificationStore();
         this._store = new SavedScenesStore();
@@ -142,6 +144,9 @@ export default class JoaoExtension extends Extension {
         this._ringTools = null;
         this._view.destroy();
         this._view = null;
+        // After the page: its power bar may still hold the dialog's method for a few seconds.
+        this._reopenDialog.destroy();
+        this._reopenDialog = null;
         this._restorer.destroy();
         this._restorer = null;
         this._escenas.destroy();

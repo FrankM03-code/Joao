@@ -37,7 +37,7 @@ class JoaoSystemPanel extends St.BoxLayout {
         this.profile = new PowerProfile(tooltip);
         this.today = new TodayBlock({close});
         this.notifications = new NotificationsBlock({tooltip, close});
-        this.footer = new PowerBar({tooltip, close, closeNow});
+        this.footer = new PowerBar({tooltip, close, closeNow, settings});
         this._blocks.add_child(this.sliders);
         this._blocks.add_child(this.toggles);
         this._blocks.add_child(this.profile);

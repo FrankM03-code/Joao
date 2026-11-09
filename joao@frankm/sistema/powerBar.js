@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Foot of the panel: one bar with two states in the same space.
 //   main:  Ajustes, Captura, Grabar, Bloquear, Energía
-//   power: back, Suspender, Hibernar, Reiniciar, Salir, Apagar
+//   power: back, Suspender, Reiniciar, Salir, Apagar, with "Volver a abrir los programas al
+//          encender" above them (sistema/reopenAfterPowerOff.js)
 // Reiniciar, Salir and Apagar act at once: no countdown and no GNOME dialog, unless an app has
 // unsaved work. It goes back to main when it stops being on screen.
 import Clutter from 'gi://Clutter';
@@ -17,6 +18,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import {launchSettings} from './common.js';
 import {notify} from './notice.js';
+import {REOPEN_KEY, canHibernate, hibernate, reopenRow} from './reopenAfterPowerOff.js';
 
 // What went wrong with the power and capture actions, in the journal (one place for all of them).
 const warn = message => console.warn(`João: ${message}`);
@@ -38,12 +40,6 @@ const SYSTEM_RUNS = {
     suspend: 'activateSuspend',
 };
 const END_SESSION = new Set(['restart', 'logout', 'poweroff']);
-
-function callLogind(method, params, cancellable, done) {
-    Gio.DBus.system.call('org.freedesktop.login1', '/org/freedesktop/login1',
-        'org.freedesktop.login1.Manager', method, params, null,
-        Gio.DBusCallFlags.ALLOW_INTERACTIVE_AUTHORIZATION, -1, cancellable, done);
-}
 
 function callSession(method, params, done) {
     Gio.DBus.session.call('org.gnome.SessionManager', '/org/gnome/SessionManager',
@@ -84,7 +80,7 @@ function skipNextDialog(signal) {
 
 export const PowerBar = GObject.registerClass(
 class JoaoPowerBar extends St.Widget {
-    _init({tooltip, close, closeNow}) {
+    _init({tooltip, close, closeNow, settings}) {
         super._init({
             style_class: 'pb-bar',
             layout_manager: new Clutter.BinLayout(),
@@ -95,6 +91,9 @@ class JoaoPowerBar extends St.Widget {
         this._tooltip = tooltip;
         this._close = close;
         this._closeNow = closeNow;
+        this._settings = settings;
+        this._canHibernate = false;
+        this._restoreSkip = null;
         this._actions = SystemActions.getDefault();
         this._state = MAIN;
         this._recordingId = 0;
@@ -127,20 +126,24 @@ class JoaoPowerBar extends St.Widget {
     }
 
     _buildPower() {
-        const layer = this._powerLayer = this._layer();
+        const layer = this._powerLayer = this._layer(Clutter.Orientation.VERTICAL);
+        this._reopen = reopenRow(this._settings, 'joao-reopen pb-reopen');
+        this._reopen.hide();
+        layer.add_child(this._reopen);
+        const row = this._powerRow = new St.BoxLayout({style_class: 'pb-row', x_expand: true});
+        layer.add_child(row);
         const back = this._button('back', 'go-previous-symbolic', null, () => this._go(MAIN), 'pb-back');
         back.accessible_name = 'Volver';
         this._tooltip.attach(back, 'Volver');
-        layer.add_child(back);
-        layer.add_child(this._button('suspend', 'weather-clear-night-symbolic', 'Suspender', () => this.run('suspend'), 'pb-flex'));
-        layer.add_child(this._button('hibernate', 'drive-harddisk-symbolic', 'Hibernar', () => this.run('hibernate'), 'pb-flex'));
-        layer.add_child(this._button('restart', 'view-refresh-symbolic', 'Reiniciar', () => this.run('restart'), 'pb-flex'));
-        layer.add_child(this._button('logout', 'system-log-out-symbolic', 'Salir', () => this.run('logout'), 'pb-flex'));
-        layer.add_child(this._button('poweroff', 'system-shutdown-symbolic', 'Apagar', () => this.run('poweroff'), 'pb-flex pb-danger'));
+        row.add_child(back);
+        row.add_child(this._button('suspend', 'weather-clear-night-symbolic', 'Suspender', () => this.run('suspend'), 'pb-flex'));
+        row.add_child(this._button('restart', 'view-refresh-symbolic', 'Reiniciar', () => this.run('restart'), 'pb-flex'));
+        row.add_child(this._button('logout', 'system-log-out-symbolic', 'Salir', () => this.run('logout'), 'pb-flex'));
+        row.add_child(this._button('poweroff', 'system-shutdown-symbolic', 'Apagar', () => this.run('poweroff'), 'pb-flex pb-danger'));
     }
 
-    _layer() {
-        const box = new St.BoxLayout({style_class: 'pb-layer', x_expand: true});
+    _layer(orientation = Clutter.Orientation.HORIZONTAL) {
+        const box = new St.BoxLayout({style_class: 'pb-layer', orientation, x_expand: true});
         this.add_child(box);
         return box;
     }
@@ -184,19 +187,14 @@ class JoaoPowerBar extends St.Widget {
             Gio.SettingsBindFlags.GET | Gio.SettingsBindFlags.INVERT_BOOLEAN);
     }
 
-    // Hidden unless logind says this machine can do it ("challenge" asks for a password).
+    // The check box shows only when logind can hibernate without asking.
     _checkHibernate() {
-        const button = this.buttons.hibernate;
-        button.visible = false;
         this._hibernateCheck = new Gio.Cancellable();
-        callLogind('CanHibernate', null, this._hibernateCheck, (bus, res) => {
-            try {
-                const [answer] = bus.call_finish(res).deepUnpack();
-                button.visible = answer === 'yes' || answer === 'challenge';
-            } catch (e) {
-                if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.CANCELLED))
-                    warn(`CanHibernate: ${e.message}`);
-            }
+        canHibernate(this._hibernateCheck).then(yes => {
+            if (this._hibernateCheck.is_cancelled())
+                return;
+            this._canHibernate = yes;
+            this._reopen.visible = yes;
         });
     }
 
@@ -224,6 +222,7 @@ class JoaoPowerBar extends St.Widget {
             opacity: 0,
         });
         to.show();
+        this._easeHeight(to);
         to.ease({
             translation_x: 0,
             translation_y: 0,
@@ -232,13 +231,33 @@ class JoaoPowerBar extends St.Widget {
             mode: Clutter.AnimationMode.EASE_OUT_EXPO,
         });
         if (state === POWER)
-            this._stagger(to);
+            this._stagger();
         if (hadFocus)
             this._focusIn(state);
     }
 
-    _stagger(layer) {
-        layer.get_children().filter(child => child.visible).forEach((child, i) => {
+    // The power state is taller when it holds the check box: the bar grows into the panel.
+    _easeHeight(layer) {
+        const [, target] = layer.get_preferred_height(this.width);
+        const start = this.height;
+        this.remove_transition('height');
+        this.height = start;
+        this.ease({
+            height: target,
+            duration: DURATION * 0.6,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            onComplete: () => {
+                this.height = -1;
+            },
+        });
+    }
+
+    _powerChildren() {
+        return [this._reopen, ...this._powerRow.get_children()];
+    }
+
+    _stagger() {
+        this._powerChildren().filter(child => child.visible).forEach((child, i) => {
             child.remove_all_transitions();
             child.set({opacity: 0, translation_y: 6});
             child.ease({
@@ -265,7 +284,9 @@ class JoaoPowerBar extends St.Widget {
             layer.remove_all_transitions();
             layer.set({translation_x: 0, translation_y: 0, opacity: 255, visible: i === MAIN});
         });
-        for (const child of this._powerLayer.get_children()) {
+        this.remove_transition('height');
+        this.height = -1;
+        for (const child of this._powerChildren()) {
             child.remove_all_transitions();
             child.set({opacity: 255, translation_y: 0});
         }
@@ -333,7 +354,8 @@ class JoaoPowerBar extends St.Widget {
             this.activateLogout(LOGOUT_NO_DIALOG);
             return;
         }
-        const restore = skipNextDialog(action === 'poweroff' ? 'ConfirmedShutdown' : 'ConfirmedReboot');
+        this._restoreSkip?.();
+        const restore = this._restoreSkip = skipNextDialog(action === 'poweroff' ? 'ConfirmedShutdown' : 'ConfirmedReboot');
         callSession(action === 'poweroff' ? 'Shutdown' : 'Reboot', null, (bus, res) => {
             try {
                 bus.call_finish(res);
@@ -345,14 +367,20 @@ class JoaoPowerBar extends St.Widget {
         });
     }
 
+    // Separate so the tests can replace it.
     activateHibernate() {
-        callLogind('Hibernate', new GLib.Variant('(b)', [true]), null, (bus, res) => {
-            try {
-                bus.call_finish(res);
-            } catch (e) {
-                warn(`Hibernate: ${e.message}`);
-                notify('No se pudo hibernar', 'El equipo sigue encendido y no se perdió nada.');
-            }
+        return hibernate();
+    }
+
+    // With the check box on, Apagar hibernates; if logind refuses, it powers off as usual.
+    _powerOff() {
+        if (!this._canHibernate || !this._settings.get_boolean(REOPEN_KEY)) {
+            this.activateEndSession('poweroff');
+            return;
+        }
+        this.activateHibernate().catch(e => {
+            warn(`Hibernate: ${e.message}`);
+            this.activateEndSession('poweroff');
         });
     }
 
@@ -378,8 +406,8 @@ class JoaoPowerBar extends St.Widget {
         this._closeAndReset();
         if (id === 'settings')
             launchSettings();
-        else if (id === 'hibernate')
-            this.activateHibernate();
+        else if (id === 'poweroff')
+            this._powerOff();
         else if (END_SESSION.has(id))
             this.activateEndSession(id);
         else
@@ -389,6 +417,8 @@ class JoaoPowerBar extends St.Widget {
     _onDestroy() {
         this.disconnect(this._mappedId);
         this._hibernateCheck.cancel();
+        this._restoreSkip?.();
+        this._restoreSkip = null;
         if (this._recordingId)
             GLib.source_remove(this._recordingId);
         this._recordingId = 0;

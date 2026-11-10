@@ -41,7 +41,7 @@ const SYSTEM_RUNS = {
 };
 const END_SESSION = new Set(['restart', 'logout', 'poweroff']);
 
-function callSession(method, params, done) {
+export function callSession(method, params, done) {
     Gio.DBus.session.call('org.gnome.SessionManager', '/org/gnome/SessionManager',
         'org.gnome.SessionManager', method, params, null,
         Gio.DBusCallFlags.NONE, -1, null, done);
@@ -50,7 +50,7 @@ function callSession(method, params, done) {
 // gnome-session's Shutdown and Reboot always ask the shell for its dialog. The click was the
 // answer, so the next request is confirmed at once, unless an app holds the session (unsaved work):
 // then the dialog shows, naming it. Returns what undoes this if the request never comes.
-function skipNextDialog(signal) {
+export function skipNextDialog(signal) {
     const proto = EndSessionDialog.prototype;
     const original = proto.OpenAsync;
     if (!original)

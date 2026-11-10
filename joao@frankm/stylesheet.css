@@ -1634,3 +1634,346 @@
 .joao-alarm-action.primary { background-color: #afa9ec; color: #26215c; font-weight: 600; }
 .joao-alarm-action.primary:hover { background-color: #c2bdf2; }
 .joao-alarm-action:focus { border-color: #ffffff; }
+
+/* ---------- Settings strip (franja-ajustes/) ---------- */
+/* This PC: Frank's glass design (panel-ajustes-vidrio.html, 2026-11-09), with GNOME's accent colour
+   (Settings → Appearance) instead of the mockup's mint. Glass rgba(16,14,24,.72) over the blurred
+   background; tiles rgba(255,255,255,.07) with a .08 border; text #F4F4F7 / #E4E4EA / #C2C2CC / #A8A8B3. */
+.joao-ajustes { border-radius: 24px; color: #F4F4F7; }
+.joao-ajustes-cara {
+  border-radius: 24px;
+  background-color: rgba(30, 30, 33, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.joao-ajustes-vista { padding: 19px 13px 13px; spacing: 13px; }
+/* Bottom room for the power button mounted on the edge. */
+.joao-ajustes-vista-ajustes, .joao-ajustes-energia, .joao-ajustes-red { padding-bottom: 37px; }
+
+/* Clock */
+.joao-ajustes-cabecera-fila { spacing: 4px; }
+.joao-ajustes-hora { font-size: 36px; font-weight: 600; letter-spacing: -1px; color: #F4F4F7; }
+.joao-ajustes-fecha { font-size: 11px; color: #C2C2CC; }
+
+/* The power button on the bottom edge */
+.joao-ajustes-burbuja-aro { width: 47px; height: 47px; border-radius: 24px; background-color: transparent; }
+.joao-ajustes-burbuja {
+  width: 47px;
+  height: 47px;
+  border-radius: 24px;
+  background-color: #F4F4F7;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #17171C;
+  box-shadow: 0 6px 15px rgba(20, 8, 50, 0.45);
+}
+.joao-ajustes-burbuja:hover { background-color: #ffffff; }
+.joao-ajustes-burbuja:active { background-color: #dcdce2; }
+.joao-ajustes-burbuja:focus { box-shadow: inset 0 0 0 2px -st-accent-color; }
+
+/* Tiles, 4 × 2 */
+.joao-ajustes-interruptores { padding: 3px 2px; }
+.joao-ajustes-interruptor { spacing: 5px; }
+.joao-ajustes-circulo {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  background-color: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #E4E4EA;
+  transition-duration: 150ms;
+}
+.joao-ajustes-circulo:hover { background-color: rgba(255, 255, 255, 0.12); }
+.joao-ajustes-circulo:focus { border-color: -st-accent-color; }
+.joao-ajustes-circulo:checked { background-color: -st-accent-color; border-color: transparent; color: -st-accent-fg-color; }
+.joao-ajustes-circulo:checked:hover { background-color: st-lighten(-st-accent-color, 6%); }
+.joao-ajustes-mas { padding: 0 5px 5px 0; }
+.joao-ajustes-interruptor-nombre { font-size: 10.5px; font-weight: 500; color: #E4E4EA; }
+.joao-ajustes-onda { width: 46px; height: 46px; border-radius: 15px; border: 2px solid -st-accent-color; }
+
+/* Volume (and brightness, with a backlight) */
+.joao-ajustes-controles { spacing: 7px; }
+.joao-ajustes-control {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 19px;
+  background-color: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  spacing: 9px;
+}
+.joao-ajustes-control-icono { width: 18px; height: 18px; border-radius: 9px; color: #E4E4EA; }
+.joao-ajustes-control-icono:hover { background-color: rgba(255, 255, 255, 0.1); }
+.joao-ajustes-barra {
+  height: 16px;
+  color: #ffffff;
+  -barlevel-height: 6px;
+  -barlevel-background-color: rgba(255, 255, 255, 0.14);
+  -barlevel-active-background-color: -st-accent-color;
+  -barlevel-overdrive-color: #e66100;
+  -barlevel-overdrive-separator-width: 2px;
+  -slider-handle-radius: 7px;
+}
+.joao-ajustes-barra:focus { color: st-mix(-st-accent-color, #ffffff, 30%); }
+.joao-ajustes-control-valor { font-size: 11px; font-weight: 600; color: #F4F4F7; min-width: 20.6px; text-align: right; }
+
+/* Modes: a segmented bar */
+.joao-ajustes-modos-caja { spacing: 7px; }
+.joao-ajustes-modos-cabeza { padding: 0 4px; }
+.joao-ajustes-titulo { font-size: 10.5px; font-weight: 600; color: #C2C2CC; }
+.joao-ajustes-nuevo {
+  width: 21px;
+  height: 21px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #E4E4EA;
+}
+.joao-ajustes-nuevo:hover, .joao-ajustes-nuevo:focus { background-color: rgba(255, 255, 255, 0.1); }
+.joao-ajustes-nombre-fila { spacing: 4px; }
+.joao-ajustes-nombre {
+  font-size: 10.5px;
+  color: #F4F4F7;
+  padding: 3px 7px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid -st-accent-color;
+  caret-color: #F4F4F7;
+  selection-background-color: -st-accent-color;
+}
+.joao-ajustes-nombre StLabel.hint-text { color: #A8A8B3; }
+.joao-ajustes-nombre-ok { width: 21px; height: 21px; border-radius: 10px; background-color: -st-accent-color; color: -st-accent-fg-color; }
+.joao-ajustes-modos-rejilla { padding: 3px; border-radius: 16px; background-color: rgba(0, 0, 0, 0.22); }
+.joao-ajustes-modo {
+  padding: 7px 0;
+  border-radius: 13px;
+  border: 1px solid transparent;
+  color: #C2C2CC;
+  transition-duration: 150ms;
+}
+.joao-ajustes-modo:hover { background-color: rgba(255, 255, 255, 0.06); }
+.joao-ajustes-modo:focus { border-color: st-transparentize(-st-accent-color, 0.5); }
+.joao-ajustes-modo.cambiado { border-color: -st-accent-color; }
+.joao-ajustes-modo.activo { background-color: rgba(255, 255, 255, 0.14); color: #ffffff; }
+.joao-ajustes-modo.activo .joao-ajustes-modo-icono { color: -st-accent-color; }
+.joao-ajustes-modo-fila { spacing: 3px; }
+.joao-ajustes-modo-nombre { font-size: 10.5px; font-weight: 600; }
+.joao-ajustes-modos-menu {
+  padding: 4px;
+  spacing: 2px;
+  border-radius: 12px;
+  background-color: rgba(30, 27, 40, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #F4F4F7;
+}
+.joao-ajustes-modos-menu-titulo { font-size: 10.5px; font-weight: 600; padding: 2px 6.9px 3.4px; color: #C2C2CC; }
+.joao-ajustes-modos-menu-item { font-size: 10.5px; padding: 6px 6.9px; border-radius: 8.6px; }
+.joao-ajustes-modos-menu-item:hover,
+.joao-ajustes-modos-menu-item:focus { background-color: rgba(255, 255, 255, 0.1); }
+
+/* João's privacy row */
+.joao-ajustes-fila-joao {
+  spacing: 6px;
+  padding: 6px 9px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.joao-ajustes-fila-joao-texto { font-size: 10.5px; font-weight: 600; color: #F4F4F7; }
+.joao-ajustes-ecualizador { spacing: 2px; height: 9px; }
+.joao-ajustes-ecualizador-barra { width: 2px; height: 9px; border-radius: 1.5px; background-color: #ff9f43; }
+
+/* Foot: a thin line, then Ajustes · battery · Bloquear */
+.joao-ajustes-pie { spacing: 9px; }
+.joao-ajustes-pie-linea { height: 1px; background-color: rgba(255, 255, 255, 0.09); }
+.joao-ajustes-bateria-info { spacing: 4px; color: #E4E4EA; }
+.joao-ajustes-bateria-texto { font-size: 10.5px; font-weight: 600; color: #E4E4EA; }
+.joao-ajustes-pildora {
+  height: 33px;
+  padding: 0 12px 0 9px;
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #E4E4EA;
+  font-size: 11px;
+  font-weight: 500;
+}
+.joao-ajustes-pildora:hover { background-color: rgba(255, 255, 255, 0.13); }
+.joao-ajustes-pildora:focus { box-shadow: inset 0 0 0 2px -st-accent-color; }
+.joao-ajustes-pildora-caja { spacing: 6px; }
+
+/* Small notice */
+.joao-ajustes-aviso {
+  margin-top: 13px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #17171C;
+  background-color: rgba(244, 244, 247, 0.95);
+}
+
+/* Wi-Fi and Bluetooth view */
+.joao-ajustes-red { spacing: 9px; }
+.joao-ajustes-red-cabeza { spacing: 7px; padding: 0 2px; }
+.joao-ajustes-atras { width: 30px; height: 30px; border-radius: 15px; background-color: rgba(255, 255, 255, 0.08); color: #F4F4F7; }
+.joao-ajustes-atras:hover, .joao-ajustes-atras:focus { background-color: rgba(255, 255, 255, 0.14); }
+.joao-ajustes-red-titulo { font-size: 14.5px; font-weight: 600; color: #F4F4F7; }
+.joao-ajustes-red-estado { font-size: 10.5px; color: #C2C2CC; }
+.joao-ajustes-red-interruptor { border-radius: 12px; }
+.joao-ajustes-red-interruptor:focus { box-shadow: 0 0 0 2px -st-accent-color; }
+.joao-ajustes-red-lista {
+  padding: 4px;
+  spacing: 3px;
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.joao-ajustes-red-lista-titulo { padding: 5.2px 8.6px 3.4px; font-size: 10.5px; font-weight: 600; color: #C2C2CC; }
+.joao-ajustes-red-filas { spacing: 3px; }
+.joao-ajustes-red-fila { height: 38px; padding: 0 9px; border-radius: 12px; color: #E4E4EA; }
+.joao-ajustes-red-fila:hover, .joao-ajustes-red-fila:focus { background-color: rgba(255, 255, 255, 0.05); }
+.joao-ajustes-red-fila.on { background-color: rgba(255, 255, 255, 0.10); }
+.joao-ajustes-red-fila-caja { spacing: 9px; }
+.joao-ajustes-red-ico { width: 24px; height: 24px; border-radius: 7px; background-color: rgba(255, 255, 255, 0.08); color: #E4E4EA; }
+.joao-ajustes-red-fila.on .joao-ajustes-red-ico { background-color: -st-accent-color; color: -st-accent-fg-color; }
+.joao-ajustes-red-nombre { font-size: 11.5px; font-weight: 600; color: #F4F4F7; }
+.joao-ajustes-red-sub { font-size: 10.5px; color: #A8A8B3; }
+.joao-ajustes-red-fila.on .joao-ajustes-red-sub { color: -st-accent-color; }
+.joao-ajustes-red-candado { color: #A8A8B3; }
+.joao-ajustes-red-check { color: -st-accent-color; }
+.joao-ajustes-red-nada { padding: 6.9px 8.6px 8.6px; font-size: 10.5px; color: #A8A8B3; }
+.joao-ajustes-enlace { height: 31px; padding: 0 10.3px; border-radius: 15.5px; color: #D8D8E0; font-size: 11px; font-weight: 500; }
+.joao-ajustes-enlace:hover, .joao-ajustes-enlace:focus { background-color: rgba(255, 255, 255, 0.08); }
+.joao-ajustes-enlace-caja { spacing: 4px; }
+.joao-ajustes-red-vacio-caja {
+  height: 163px;
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0 18px;
+}
+.joao-ajustes-red-vacio { font-size: 11px; color: #C2C2CC; text-align: center; }
+
+/* Power view */
+.joao-ajustes-energia { spacing: 7px; }
+.joao-ajustes-volver { font-size: 11px; font-weight: 600; color: #E4E4EA; padding: 5.2px 10.3px; border-radius: 13.8px; }
+.joao-ajustes-volver:hover, .joao-ajustes-volver:focus { background-color: rgba(255, 255, 255, 0.1); }
+.joao-ajustes-usuario {
+  spacing: 9px;
+  padding: 7px 9px;
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.joao-ajustes-avatar { border-radius: 73px; }
+.joao-ajustes-usuario-nombre { font-size: 12px; font-weight: 600; color: #F4F4F7; }
+.joao-ajustes-usuario-encendido { font-size: 10.5px; color: #C2C2CC; }
+.joao-ajustes-energia-lista { spacing: 3px; }
+.joao-ajustes-energia-fila {
+  height: 33px;
+  padding: 0 10px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #F4F4F7;
+  font-size: 11px;
+  font-weight: 600;
+}
+.joao-ajustes-energia-fila StBoxLayout { spacing: 9px; }
+.joao-ajustes-energia-fila:hover, .joao-ajustes-energia-fila:focus { background-color: rgba(255, 255, 255, 0.13); }
+.joao-ajustes-energia-fila.peligro { background-color: #c01c28; border-color: transparent; color: #ffffff; }
+.joao-ajustes-energia-fila.peligro:hover, .joao-ajustes-energia-fila.peligro:focus { background-color: #d42a36; }
+.joao-ajustes-casilla { padding: 3px 3px; border-radius: 9px; color: #F4F4F7; }
+.joao-ajustes-casilla StBoxLayout { spacing: 7px; }
+.joao-ajustes-casilla:focus { background-color: rgba(255, 255, 255, 0.08); }
+.joao-ajustes-casilla-caja {
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  color: -st-accent-fg-color;
+}
+.joao-ajustes-casilla-caja:checked { background-color: -st-accent-color; border-color: -st-accent-color; }
+.joao-ajustes-casilla-texto { font-size: 11px; font-weight: 600; }
+.joao-ajustes-nota { font-size: 10.5px; color: #C2C2CC; padding: 0 3.4px; }
+
+/* ---- GNOME in light mode: light glass, dark text (accent unchanged) ---- */
+.joao-ajustes.claro { color: #1d1d20; }
+.joao-ajustes.claro .joao-ajustes-cara { background-color: rgba(250, 250, 252, 0.84); border-color: rgba(0, 0, 0, 0.08); }
+.joao-ajustes.claro .joao-ajustes-hora,
+.joao-ajustes.claro .joao-ajustes-control-valor,
+.joao-ajustes.claro .joao-ajustes-fila-joao-texto,
+.joao-ajustes.claro .joao-ajustes-red-titulo,
+.joao-ajustes.claro .joao-ajustes-red-nombre,
+.joao-ajustes.claro .joao-ajustes-usuario-nombre,
+.joao-ajustes.claro .joao-ajustes-casilla,
+.joao-ajustes.claro .joao-ajustes-nombre,
+.joao-ajustes.claro .joao-ajustes-modos-menu { color: #1d1d20; }
+.joao-ajustes.claro .joao-ajustes-interruptor-nombre,
+.joao-ajustes.claro .joao-ajustes-circulo,
+.joao-ajustes.claro .joao-ajustes-control-icono,
+.joao-ajustes.claro .joao-ajustes-nuevo,
+.joao-ajustes.claro .joao-ajustes-pildora,
+.joao-ajustes.claro .joao-ajustes-bateria-info,
+.joao-ajustes.claro .joao-ajustes-bateria-texto,
+.joao-ajustes.claro .joao-ajustes-atras,
+.joao-ajustes.claro .joao-ajustes-red-fila,
+.joao-ajustes.claro .joao-ajustes-red-ico,
+.joao-ajustes.claro .joao-ajustes-enlace,
+.joao-ajustes.claro .joao-ajustes-volver,
+.joao-ajustes.claro .joao-ajustes-energia-fila { color: #2e2e33; }
+.joao-ajustes.claro .joao-ajustes-fecha,
+.joao-ajustes.claro .joao-ajustes-titulo,
+.joao-ajustes.claro .joao-ajustes-modo,
+.joao-ajustes.claro .joao-ajustes-red-estado,
+.joao-ajustes.claro .joao-ajustes-red-lista-titulo,
+.joao-ajustes.claro .joao-ajustes-red-sub,
+.joao-ajustes.claro .joao-ajustes-red-candado,
+.joao-ajustes.claro .joao-ajustes-red-nada,
+.joao-ajustes.claro .joao-ajustes-red-vacio,
+.joao-ajustes.claro .joao-ajustes-usuario-encendido,
+.joao-ajustes.claro .joao-ajustes-nota,
+.joao-ajustes.claro .joao-ajustes-modos-menu-titulo { color: #5e5e66; }
+.joao-ajustes.claro .joao-ajustes-circulo,
+.joao-ajustes.claro .joao-ajustes-control,
+.joao-ajustes.claro .joao-ajustes-fila-joao,
+.joao-ajustes.claro .joao-ajustes-usuario,
+.joao-ajustes.claro .joao-ajustes-energia-fila,
+.joao-ajustes.claro .joao-ajustes-red-lista { background-color: rgba(0, 0, 0, 0.05); border-color: rgba(0, 0, 0, 0.06); }
+.joao-ajustes.claro .joao-ajustes-circulo:hover,
+.joao-ajustes.claro .joao-ajustes-pildora:hover,
+.joao-ajustes.claro .joao-ajustes-energia-fila:hover,
+.joao-ajustes.claro .joao-ajustes-energia-fila:focus,
+.joao-ajustes.claro .joao-ajustes-atras:hover,
+.joao-ajustes.claro .joao-ajustes-atras:focus,
+.joao-ajustes.claro .joao-ajustes-nuevo:hover,
+.joao-ajustes.claro .joao-ajustes-nuevo:focus,
+.joao-ajustes.claro .joao-ajustes-enlace:hover,
+.joao-ajustes.claro .joao-ajustes-volver:hover,
+.joao-ajustes.claro .joao-ajustes-volver:focus,
+.joao-ajustes.claro .joao-ajustes-control-icono:hover,
+.joao-ajustes.claro .joao-ajustes-red-fila:hover,
+.joao-ajustes.claro .joao-ajustes-modo:hover,
+.joao-ajustes.claro .joao-ajustes-modos-menu-item:hover,
+.joao-ajustes.claro .joao-ajustes-casilla:focus { background-color: rgba(0, 0, 0, 0.09); }
+.joao-ajustes.claro .joao-ajustes-circulo:checked { background-color: -st-accent-color; color: -st-accent-fg-color; }
+.joao-ajustes.claro .joao-ajustes-circulo:checked:hover { background-color: st-lighten(-st-accent-color, 6%); }
+.joao-ajustes.claro .joao-ajustes-nuevo { border-color: rgba(0, 0, 0, 0.14); }
+.joao-ajustes.claro .joao-ajustes-modos-rejilla { background-color: rgba(0, 0, 0, 0.06); }
+.joao-ajustes.claro .joao-ajustes-modo.activo { background-color: #ffffff; color: #1d1d20; }
+.joao-ajustes.claro .joao-ajustes-pildora,
+.joao-ajustes.claro .joao-ajustes-atras { background-color: rgba(0, 0, 0, 0.06); }
+.joao-ajustes.claro .joao-ajustes-pie-linea { background-color: rgba(0, 0, 0, 0.09); }
+.joao-ajustes.claro .joao-ajustes-barra { -barlevel-background-color: rgba(0, 0, 0, 0.12); }
+.joao-ajustes.claro .joao-ajustes-nombre { background-color: #ffffff; caret-color: #1d1d20; }
+.joao-ajustes.claro .joao-ajustes-modos-menu { background-color: rgba(252, 252, 253, 0.98); border-color: rgba(0, 0, 0, 0.1); }
+.joao-ajustes.claro .joao-ajustes-red-fila.on { background-color: rgba(0, 0, 0, 0.07); }
+.joao-ajustes.claro .joao-ajustes-red-fila.on .joao-ajustes-red-ico { background-color: -st-accent-color; color: -st-accent-fg-color; }
+.joao-ajustes.claro .joao-ajustes-red-fila.on .joao-ajustes-red-sub { color: -st-accent-color; }
+.joao-ajustes.claro .joao-ajustes-red-ico { background-color: rgba(0, 0, 0, 0.07); }
+.joao-ajustes.claro .joao-ajustes-red-vacio-caja { background-color: rgba(0, 0, 0, 0.04); border-color: rgba(0, 0, 0, 0.1); }
+.joao-ajustes.claro .joao-ajustes-energia-fila.peligro { background-color: #c01c28; color: #ffffff; }
+.joao-ajustes.claro .joao-ajustes-energia-fila.peligro:hover,
+.joao-ajustes.claro .joao-ajustes-energia-fila.peligro:focus { background-color: #d42a36; }
+.joao-ajustes.claro .joao-ajustes-casilla-caja { border-color: rgba(0, 0, 0, 0.35); }
+.joao-ajustes.claro .joao-ajustes-casilla-caja:checked { border-color: -st-accent-color; }
+.joao-ajustes.claro .joao-ajustes-aviso { color: #ffffff; background-color: rgba(29, 29, 32, 0.92); }
+.claro .joao-ajustes-burbuja { background-color: #2e2e33; border-color: rgba(0, 0, 0, 0.2); color: #ffffff; }
+.claro .joao-ajustes-burbuja:hover { background-color: #3d3d44; }
+.claro .joao-ajustes-burbuja:active { background-color: #1d1d20; }

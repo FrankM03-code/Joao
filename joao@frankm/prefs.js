@@ -9,6 +9,7 @@ import Gtk from 'gi://Gtk';
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import {EscenasPage} from './franja/prefsEscenas.js';
+import {AjustesPage} from './franja-ajustes/prefsAjustes.js';
 
 export default class JoaoPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
@@ -17,6 +18,7 @@ export default class JoaoPreferences extends ExtensionPreferences {
         window.add(page);
         window.set_default_size(600, 780);
         new EscenasPage().fill(window, settings);
+        new AjustesPage().fill(window, settings);
 
         const open = new Adw.PreferencesGroup({title: 'Abrir'});
         page.add(open);

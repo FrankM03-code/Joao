@@ -33,7 +33,7 @@ const GROW = 320;
 const SHIFT = 10;
 const SCALE_FROM = 0.92;
 const BLUR_RADIUS = 30;
-const BLUR_BRIGHTNESS = 1.08;
+const BLUR_BRIGHTNESS = 1.0;   // Shell.BlurEffect accepts at most 1.0 (GNOME 48)
 
 const scaleFactor = () => St.ThemeContext.get_for_stage(global.stage).scale_factor;
 

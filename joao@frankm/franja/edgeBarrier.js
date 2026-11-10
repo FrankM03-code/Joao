@@ -24,11 +24,11 @@ export class EdgeBarrier {
         this._place = '';
     }
 
-    update(wanted, left) {
-        const monitor = Main.layoutManager.primaryMonitor;
+    update(wanted, left, index = Main.layoutManager.primaryIndex) {
+        const monitor = Main.layoutManager.monitors[index];
         const direction = left ? Meta.DisplayDirection.LEFT : Meta.DisplayDirection.RIGHT;
         const needed = wanted && monitor &&
-            global.display.get_monitor_neighbor_index(Main.layoutManager.primaryIndex, direction) >= 0;
+            global.display.get_monitor_neighbor_index(index, direction) >= 0;
         // On the right, one pixel inside: Wayland stops the pointer ON the barrier's x, and X11 just
         // before it. Either way it stays on this monitor, where the strip counts it as near.
         const x = needed ? monitor.x + (left ? 0 : monitor.width - 1) : 0;

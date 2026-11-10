@@ -275,5 +275,34 @@
       <summary>Volver a abrir los programas al encender</summary>
       <description>Apagar hiberna el equipo: se ve como un apagado normal, pero al encender todo está como se dejó. Solo si el sistema puede hibernar.</description>
     </key>
+    <key name="settings-strip-enabled" type="b">
+      <default>true</default>
+      <summary>Mostrar la franja de ajustes</summary>
+    </key>
+    <key name="settings-strip-shortcut" type="as">
+      <default><![CDATA[['<Super>a']]]></default>
+      <summary>Mostrar u ocultar la franja de ajustes</summary>
+    </key>
+    <key name="settings-strip-toggles" type="as">
+      <default><![CDATA[['wifi', 'bluetooth', 'dark', 'dnd', 'night-light', 'airplane']]]></default>
+      <summary>Interruptores de la franja de ajustes y su orden</summary>
+      <description>Valores posibles: wifi, bluetooth, dark, dnd, night-light, airplane.</description>
+    </key>
+    <key name="settings-strip-power-shortcut" type="as">
+      <default>[]</default>
+      <summary>Abrir la franja de ajustes en la vista Energía</summary>
+    </key>
+    <key name="modes-enabled" type="b">
+      <default>true</default>
+      <summary>Mostrar la sección Modos</summary>
+    </key>
+    <key name="modes" type="s">
+      <default><![CDATA['[{"id":"trabajo","name":"Trabajo","color":"rgba(28,95,189,0.9)","icon":"computer-symbolic","settings":{"bluetooth":true,"dark":false,"dnd":false,"night-light":false,"volume":0.6,"brightness":0.8}},{"id":"reunion","name":"Reunión","color":"#ff9f43","icon":"camera-web-symbolic","settings":{"bluetooth":true,"dark":false,"dnd":true,"night-light":false,"volume":0.4,"brightness":0.8}},{"id":"noche","name":"Noche","color":"#6a4c93","icon":"weather-clear-night-symbolic","settings":{"bluetooth":false,"dark":true,"dnd":true,"night-light":true,"volume":0.2,"brightness":0.4}},{"id":"cine","name":"Cine","color":"#2f6b57","icon":"video-display-symbolic","settings":{"bluetooth":true,"dark":true,"dnd":true,"night-light":false,"volume":0.85,"brightness":1.0}}]']]></default>
+      <summary>Modos guardados (JSON)</summary>
+    </key>
+    <key name="active-mode" type="s">
+      <default>''</default>
+      <summary>Modo activo</summary>
+    </key>
   </schema>
 </schemalist>

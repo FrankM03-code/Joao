@@ -13,6 +13,7 @@ João reúne en una sola extensión las escenas de ventanas y un lanzador a pant
 - **Distribución automática**: las escenas nuevas reparten sus ventanas solas según cuántas haya (mitades, 2×2, 3×2).
 - **Organizar ventanas**: arrastra una ventana a un borde o una esquina para colocarla en mitades o cuartos, con vista previa, o usa Super + flechas.
 - **Panel del sistema**: ajustes rápidos, volumen, brillo, perfil de energía, Modo activo, calendario, notificaciones y energía.
+- **Franja de ajustes**: un panel de vidrio en el borde derecho (en la pantalla de más a la derecha si hay varias) que se abre con Super + A: hora, Wi-Fi y Bluetooth con su lista de redes y dispositivos, modo oscuro, luz cálida, no molestar, modo avión, silenciar el micrófono, captura de pantalla, volumen, Modos y la vista Energía (Bloquear, Cerrar sesión, Suspender, Reiniciar y Apagar, con la casilla «Volver a abrir las ventanas al encender»). Sigue los colores claro u oscuro y el color de acento de GNOME.
 - **Calendario con tareas**: semana o mes con puntos por día (eventos, tareas y tareas atrasadas), la lista del día elegido, tareas con hora («Llamar a las 9») y las atrasadas arriba en rojo. Los eventos salen del calendario de GNOME.
 - **Notificaciones agrupadas por app**: una tarjeta apilada por app que se abre con un clic, y encima la nota fijada.
 - **Herramientas del anillo**: clic derecho en el botón del lanzador y la tarjeta de escenas se convierte en un menú con **nota rápida** (con «Mis notas» y listas con casillas), **portapapeles** (las últimas 25 copias, con filtros y búsqueda; no guarda lo que los gestores de contraseñas marcan como secreto) y **temporizador** (el tiempo se ve en el anillo y, al terminar, el botón vibra y avisa). Atajos: Super + Alt + N, Super + Alt + V y Super + T.
@@ -29,7 +30,7 @@ GNOME Shell 48, 49, 50 o 51.
 Con el paquete `.zip` (descárgalo de [Releases](https://github.com/FrankM03-code/Joao/releases/latest)):
 
 ```sh
-gnome-extensions install --force Joao-4.7.shell-extension.zip
+gnome-extensions install --force Joao-4.9.shell-extension.zip
 ```
 
 Desde este repositorio:

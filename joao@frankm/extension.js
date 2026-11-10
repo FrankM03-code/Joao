@@ -28,6 +28,7 @@ import {SavedScenesView} from './pantalla/savedScenesView.js';
 import {SceneRestorer} from './escenas/sceneRestorer.js';
 import {DesktopAtLogin} from './escritorio/startup.js';
 import {EscenasMode} from './franja/escenasMode.js';
+import {FranjaAjustes} from './franja-ajustes/franjaAjustes.js';
 import {SuperKey} from './escritorio/superKey.js';
 import {TopBar} from './escritorio/topBar.js';
 import {Tiling} from './ventanas/tiling.js';
@@ -40,6 +41,7 @@ const GNOME_KEYS = {
     'switch-input-source': WM_SCHEMA,
     'switch-input-source-backward': WM_SCHEMA,
     'toggle-quick-settings': SHELL_SCHEMA,
+    'toggle-application-view': SHELL_SCHEMA,
     'focus-active-notification': SHELL_SCHEMA,
     'toggle-tiled-left': MUTTER_SCHEMA,
     'toggle-tiled-right': MUTTER_SCHEMA,
@@ -47,6 +49,8 @@ const GNOME_KEYS = {
     'unmaximize': WM_SCHEMA,
 };
 const SHORTCUTS = ['saved-scenes-shortcut', 'launcher-today-shortcut', 'launcher-settings-shortcut'];
+// Only while the settings strip is on (Super+A is GNOME's app grid otherwise).
+const STRIP_SHORTCUTS = ['settings-strip-shortcut', 'settings-strip-power-shortcut'];
 const TILE_SHORTCUTS = {
     'tile-left-shortcut': 'left',
     'tile-right-shortcut': 'right',
@@ -79,7 +83,14 @@ export default class JoaoExtension extends Extension {
         this._view = new SavedScenesView(this._settings, this._store, this._restorer);
         this._ringTools = new RingTools(this._settings, this._view);
         this._escenas = new EscenasMode(this._settings, this._view);
-        this._topBar = new TopBar(this._settings, section => this._view.showSection(section));
+        // GNOME's quick settings (Super+S when João does not take it) go to the settings strip while it is on.
+        this._topBar = new TopBar(this._settings, section => {
+            if (section === 'settings' && this._settingsStrip?.enabled)
+                this._settingsStrip.toggle();
+            else
+                this._view.showSection(section);
+        });
+        this._settingsStrip = new FranjaAjustes(this._settings);
         this._privacy = new CornerIndicator(this._settings, this._topBar, this._view);
         this._notifications = new TrayBridge(this._settings, this._view);
         this._privacy.keepBelow(this._notifications.island);
@@ -94,7 +105,7 @@ export default class JoaoExtension extends Extension {
         this._bind();
         this._settingsIds = [
             this._settings.connect('changed::replace-super', () => this._syncSuper()),
-            ...[...SHORTCUTS, ...Object.keys(TILE_SHORTCUTS), 'tiling-activo'].map(key => this._settings.connect(`changed::${key}`, () => {
+            ...[...SHORTCUTS, ...STRIP_SHORTCUTS, ...Object.keys(TILE_SHORTCUTS), 'tiling-activo', 'settings-strip-enabled'].map(key => this._settings.connect(`changed::${key}`, () => {
                 this._giveBackKeys();
                 this._takeKeys();
                 this._bind();
@@ -138,6 +149,8 @@ export default class JoaoExtension extends Extension {
         forgetColors();
         this._privacy.destroy();
         this._privacy = null;
+        this._settingsStrip.destroy();
+        this._settingsStrip = null;
         this._topBar.destroy();
         this._topBar = null;
         this._ringTools.destroy();
@@ -211,10 +224,24 @@ export default class JoaoExtension extends Extension {
                 () => this._tiling?.key(TILE_SHORTCUTS[key]));
         }
         this._bound.push(...tileKeys);
+        const stripKeys = this._stripKeys().filter(key => this._settings.get_strv(key).length);
+        const stripActions = {
+            'settings-strip-shortcut': () => this._settingsStrip?.toggle(),
+            'settings-strip-power-shortcut': () => this._settingsStrip?.openEnergy(),
+        };
+        for (const key of stripKeys) {
+            Main.wm.addKeybinding(key, this._settings, Meta.KeyBindingFlags.NONE,
+                Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW, stripActions[key]);
+        }
+        this._bound.push(...stripKeys);
     }
 
     _tileKeys() {
         return this._settings.get_boolean('tiling-activo') ? Object.keys(TILE_SHORTCUTS) : [];
+    }
+
+    _stripKeys() {
+        return this._settings.get_boolean('settings-strip-enabled') ? STRIP_SHORTCUTS : [];
     }
 
     _unbind() {
@@ -224,7 +251,7 @@ export default class JoaoExtension extends Extension {
 
     // Takes João's accelerators off GNOME's lists and remembers exactly what it took.
     _takeKeys() {
-        const mine = [...SHORTCUTS, ...this._tileKeys()].flatMap(key => this._settings.get_strv(key)).map(normalize);
+        const mine = [...SHORTCUTS, ...this._tileKeys(), ...this._stripKeys()].flatMap(key => this._settings.get_strv(key)).map(normalize);
         const taken = {};
         for (const [key, schema] of Object.entries(GNOME_KEYS)) {
             const settings = this._gnomeSettings[schema];
